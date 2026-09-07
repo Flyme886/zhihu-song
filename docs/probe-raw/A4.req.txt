@@ -1,0 +1,9 @@
+GET https://developer.zhihu.com/api/v1/content/zhihu_search
+  --data-urlencode 'Query=拍照搜题 软件 会不会让学生变懒'
+  --data-urlencode 'Count=10'
+  --data-urlencode 'Offset=10'
+  --data-urlencode 'SortBy=time'
+  --data-urlencode 'StartTime=1420070400'
+  -H 'Authorization: Bearer <REDACTED>'
+  -H 'X-Request-Timestamp: <unix秒>'
+HTTP 200, 耗时 0.49s, 2026-08-30T14:16:16+0800

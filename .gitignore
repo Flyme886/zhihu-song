@@ -1,0 +1,29 @@
+# macOS
+.DS_Store
+
+# 本地工具配置（可能含机器专属路径或凭据，不入库）
+.claude/settings.local.json
+
+# 凭据：Access Secret 只存在 /tmp/zhihu-probe/.secret，任何情况下都不要放进仓库
+.secret
+*.secret
+.env
+.env.*
+
+# 候选池：按检索词整段抓下来的站内正文，不入库。
+# 不是怕仓库大 —— 合规红线写着不做批量爬取、不滥用站内用户数据。
+# 最后进仓库的只有人工核验过的短引文 + 原帖链接（docs/design/mock-topic.json）。
+harvest/
+
+# 依赖与构建产物
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+dist/
+build/
+.next/
+out/
+web/.data/
+next-env.d.ts
+.next/

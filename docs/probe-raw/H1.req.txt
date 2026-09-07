@@ -1,0 +1,5 @@
+POST https://developer.zhihu.com/v1/chat/completions
+--- body ---
+{"model": "zhida-fast-1p5", "messages": [{"role": "user", "content": "下面是一位答主给学习方法划的边界。请判断这个边界依赖学习者具备哪些条件、又会因缺少哪些条件而反噬。\n\n只能从这五个里选，用 JSON 回答，不要解释：\nself_control（自制力）、knowledge_base（知识基础）、metacognition（能判断自己对不对）、external_support（有人指导）、tool_access（有工具设备）\n\n格式：{\"requires\":[...],\"strains\":[...]}\n\n答主原话：当然前提是你得言之有物言之有理。"}]}--- headers ---
+  Authorization: Bearer <REDACTED>
+HTTP 200, 耗时 3.35s, 2026-09-01T19:08:12+0800

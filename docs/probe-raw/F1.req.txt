@@ -1,0 +1,14 @@
+POST https://developer.zhihu.com/v1/chat/completions
+--- body ---
+{
+  "model": "zhida-fast-1p5",
+  "messages": [
+    {
+      "role": "user",
+      "content": "下面是一个知乎回答的链接：\nhttps://www.zhihu.com/question/24361238/answer/51788413\n\n请阅读该回答的全文，然后严格按以下 JSON 结构输出。只输出 JSON 本身，不要输出任何解释文字，不要用 markdown 代码块包裹。\n\n{\"author\":\"作者展示名\",\"stance\":\"该回答对「在家办公能否提高效率」的立场，只能填 支持 或 反对\",\"full_text_char_count\":正文总字数的整数,\"opening_30_chars\":\"正文开头前30个字，逐字引用\",\"closing_30_chars\":\"正文结尾最后30个字，逐字引用\",\"key_conditions\":[{\"condition\":\"作者认为决定结论的条件名\",\"verbatim_quote\":\"原文中体现该条件的原句，逐字引用\",\"weight\":0到1之间的小数}],\"emphasis_sentences\":[\"原文中含有「关键在」「根本不在」「取决于」「前提是」「除非」等强调措辞的原句，逐字引用\"]}\n\n硬性要求：所有引用字段必须是原文逐字片段，不允许改写、概括或编造。如果你无法读取该回答的全文，请把 full_text_char_count 填为 -1，并把所有引用字段填为空字符串。"
+    }
+  ],
+  "stream": false
+}--- headers ---
+  Authorization: Bearer <REDACTED>
+HTTP 200, 耗时 2.98s, 2026-08-30T16:05:25+0800

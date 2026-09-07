@@ -22,7 +22,7 @@ get() {
   local body_file="$OUT/${id}.json" meta_file="$OUT/${id}.req.txt"
   local t0 t1 code
   t0=$(python3 -c 'import time;print(time.time())')
-  code=$(curl -sS -G "$BASE$path" "${args[@]}" \
+  code=$(curl -sS -G "$BASE$path" ${args[@]+"${args[@]}"} \
     -H "Authorization: Bearer $SECRET" \
     -H "X-Request-Timestamp: $(date +%s)" \
     -H 'Content-Type: application/json' \

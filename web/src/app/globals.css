@@ -1,0 +1,206 @@
+@import "tailwindcss";
+
+/* ── 色板：冷色 + 单一正红 ──
+   牌桌是深的，不做浅色模式，也不跟随系统 prefers-color-scheme。
+
+   ── 为什么从暖棕金换成冷黑白红 ──
+   BRIEF §5 初版是暖棕 + 暖金（#2A2520 / #C8A55A），照 style-compare.html 定的。
+   换掉的理由是那条硬验收：投影仪上 3 米外要能读卡面。
+   赭色压在深棕上只有 3.4:1，暖金刻线压在暖桌上更低 —— 投影仪再吃掉一半，
+   现场看到的是一片糊在一起的棕。纯红压在近黑上、冷钢白刻线压在近黑上，
+   同样的信息层级能多出一倍对比。冷色板不是换个口味，是把对比预算花在能看见的地方。
+
+   同步改了 docs/design/BRIEF.md §5 的色板表 —— 那张表和这里必须一致，
+   否则下一个人照旧表改回暖色，就把这次的理由丢了。 */
+@theme {
+  /* 桌与墙。桌子近黑偏冷，压在近白冷灰的墙上，边界靠反差立住，不靠描边。 */
+  --color-void: #08090b; /* 画面最底，墙和桌之外的部分 */
+  --color-table: #0d0e11; /* 桌框，近黑冷灰 */
+  --color-felt: #14161a; /* 桌心，只比桌框亮一档 */
+  --color-wall: #c8ccd2; /* 桌后墙面，冷白灰 */
+  --color-card: #fbfbfc; /* 卡面，近白（暖米色换成中性白，红字压上去才干净） */
+  --color-ink: #14161a; /* 卡面文字、卡头 */
+
+  /* 强调。红是唯一的强调色，且只有两档 —— 多了就没有重点。 */
+  --color-red: #d0202c; /* 主操作、反噬、当前提问者。饱和正红 */
+  --color-red-dim: #8f1a22; /* 卡面年份、票数、细红线。存在但不喊 */
+  --color-steel: #cfd6de; /* 刻线、准线、界面描边。接替原来的暖金 */
+
+  /* 三态。生效/无效不用红 —— 红留给反噬，那是全场唯一该跳出来的一下。 */
+  --color-effective: #d8e2ec; /* 生效：冷白，落定、干净 */
+  --color-ineffective: #6f7680; /* 无效：中性灰，不下沉、不打叉 */
+  --color-backfire: #d0202c; /* 反噬：正红，描边收紧 */
+  --color-dim: #7d848e; /* 说明文字、脚注 */
+
+  /* 字体：用系统字体栈。Noto Sans SC 全字集有几 MB，
+     而路演是在自己的 Mac 上投影，系统字体零下载且渲染更稳。 */
+  --font-sans: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui,
+    -apple-system, sans-serif;
+  --font-serif: "Songti SC", "Noto Serif SC", "Source Han Serif SC", "SimSun",
+    serif;
+}
+
+/* 刻线的三档亮度。rgba 不进 @theme，
+   因为 Tailwind 会把它当颜色生成一整套工具类，用不上。
+
+   卡槽是「亮色细描边」，不是暗坑。
+   投影仪在 3 米外会吃掉一半对比度，0.15 的线到墙上就没了。
+   换成冷钢白之后同样的 alpha 能多出一档可见度 —— 冷色在近黑上本来就比暖色跳。 */
+:root {
+  --glow: rgb(207 214 222 / 0.6); /* 卡槽主描边 */
+  --glow-soft: rgb(190 200 212 / 0.19); /* 分隔线、外圈 */
+  --glow-line: rgb(226 233 241 / 0.86); /* 准线、虚线、需要看清的 */
+
+  /* 红的两档半透明版本。红只在「有事发生」的地方出现：
+     当前提问者、落点命中、反噬。平时桌上不该有红。 */
+  --red-line: rgb(208 32 44 / 0.85);
+  --red-soft: rgb(208 32 44 / 0.22);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--color-void);
+  color: var(--color-card);
+  font-family: var(--font-sans);
+  /* 数字等宽：年份、赞数、坐标全站对齐 */
+  font-variant-numeric: tabular-nums;
+  overflow: hidden; /* 牌桌是一整屏，不滚动 */
+}
+
+/* 结算的淡入不在这儿。用的是 transition，末态写在元素自己的 style 上
+   （见 SettlementPanel 的 useFadeIn）—— 停下来的样子是默认值，不是某个 keyframes 的末帧。
+   动作本身照 prototype/style-compare.html 的 revealRow：往上抬一点 + 淡进来。 */
+
+/* 依次揭示承载语义（先生效、后反噬，反噬排最后），
+   减少动效时压时长、不取消顺序 —— 倍率见 lib/useReducedMotion.ts。
+   这里不放 --motion-scale：那个数 JS 那半边的定时器读不到，
+   两套时间轴各走一份就会「卡翻了字还没跟上」。 */
+
+/* ════════════════════════════════════════════════════════════
+   氛围层
+   ════════════════════════════════════════════════════════════
+
+   这一层全是装饰，不承载任何信息 —— 所以它可以被整体关掉（见文件末尾的
+   prefers-reduced-motion），而结算的依次揭示不行。
+
+   所有周期都取了互质的怪值（7.3s / 11s / 13s / 17s…）。
+   取整数会让几层动画每隔几秒对齐一次，那种对齐人眼抓得到，
+   一抓到就露馅：这不是一间屋子，是几个循环的动画。 */
+
+/* 吊灯的呼吸。真实的灯泡电流不稳，光是会动的 ——
+   幅度必须很小（±6% 亮度），大了就成了「呼吸灯效果」，那是电子产品不是灯。 */
+@keyframes amb-breathe {
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.035);
+  }
+}
+
+/* 光柱里的浮尘。往上飘 —— 桌上那盏灯是热源，热空气带着灰往上走。
+   水平方向给一点漂移，直线上升的是雪不是尘。 */
+@keyframes amb-mote {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(0.6);
+  }
+  12% {
+    opacity: var(--mote-peak, 0.5);
+  }
+  70% {
+    opacity: var(--mote-peak, 0.5);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--mote-dx, 14px), -58vh, 0) scale(1.15);
+  }
+}
+
+/* 手牌待命时的浮动。
+   幅度只有 2px：这不是「卡在飘」，是「摄影机在轻微呼吸」——
+   桌上的静物本来不该动，但整屏一点不动就是截图。
+   结算之后这个动画会摘掉，那时候桌面该是定住的。 */
+@keyframes amb-idle-float {
+  0%,
+  100% {
+    transform: translateZ(1px) translateY(0);
+  }
+  50% {
+    transform: translateZ(1px) translateY(-2px);
+  }
+}
+
+/* 结算按钮备好了。红色光晕明灭 —— 桌上唯一在催人动手的东西。 */
+@keyframes amb-ready-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 18px rgb(208 32 44 / 0.4),
+      0 0 0 0 rgb(208 32 44 / 0.45);
+  }
+  50% {
+    box-shadow:
+      0 0 32px rgb(232 48 60 / 0.75),
+      0 0 0 5px rgb(208 32 44 / 0);
+  }
+}
+
+/* 反噬那一下的震屏不在这儿 —— 它是「调一次放一次」的动作，
+   关键帧在 components/Ambience.tsx 的 useShake 里，用 Element.animate()。
+   放到这里会让人以为有个类名能开关它，而实际上没有。 */
+
+/* 红光闪和筹码涟漪也不在这儿，而且理由比震屏更硬：
+   这两样的静止态是「看不见」。写成 CSS animation 的话，看不见就得靠
+   fill-mode 把末帧钉住 —— 一旦动画没跑完（页面在后台、动画被策略禁掉），
+   停在第一帧就是整屏红 / 一圈亮环。
+   所以它们的不可见写在元素自己的 style 里，亮起来才是临时叠的一段动画。
+   见 components/Ambience.tsx 的 useOneShot。 */
+
+/* 聚光灯扫到正在揭示的那一格。淡入快、淡出慢 —— 光打过来是「啪」，撤走是「渐」 */
+@keyframes amb-spot-in {
+  from {
+    opacity: 0;
+    transform: scale(0.82);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 点结算那一刻墙上的灯闪一下。
+   电压被拉了一把 —— 先暗，再过冲到比原来更亮，然后落回。
+   这个顺序是关键：只有「先暗一下」才像真的电，直接变亮只是个高光动画。 */
+@keyframes amb-surge {
+  0% { opacity: 1; }
+  14% { opacity: 0.55; }
+  30% { opacity: 1.55; }
+  55% { opacity: 0.85; }
+  100% { opacity: 1; }
+}
+
+/* ── 减少动效：氛围层整体关掉 ──
+   这一层不带信息，所以是唯一可以真正「取消」而不是「压时长」的部分。
+   结算的依次揭示不在这里 —— 它承载语义，只压时长（见 lib/useReducedMotion.ts）。
+
+   浮尘直接 display:none：它是几十个持续运动的元素，
+   对动效敏感的人来说这是整屏最难受的东西，压时长没有意义。 */
+@media (prefers-reduced-motion: reduce) {
+  .amb-motes {
+    display: none;
+  }
+  .amb-breathe,
+  .amb-idle,
+  .amb-ready,
+  .amb-surge {
+    animation: none !important;
+  }
+}
