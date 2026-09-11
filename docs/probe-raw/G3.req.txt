@@ -1,8 +1,0 @@
-GET https://developer.zhihu.com/api/v1/content/global_search
-  --data-urlencode 'Query=AI 写作业 依赖 思考能力'
-  --data-urlencode 'Count=20'
-  --data-urlencode 'Filter=publish_time>=1640966400 AND publish_time<=1672502399'
-  --data-urlencode 'SearchDB=all'
-  -H 'Authorization: Bearer <REDACTED>'
-  -H 'X-Request-Timestamp: <unix秒>'
-HTTP 200, 耗时 0.89s, 2026-09-01T18:15:15+0800

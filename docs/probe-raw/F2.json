@@ -1,1 +1,0 @@
-{"id":"chatcmpl-400ed93f-dfc0-4143-b048-dee5160e3a5c","object":"chat.completion","created":1788077129,"model":"zhida-fast-1p5","choices":[{"index":0,"message":{"role":"assistant","content":"{\"author\":\"\",\"stance\":\"\",\"full_text_char_count\":-1,\"opening_30_chars\":\"\",\"closing_30_chars\":\"\",\"key_conditions\":[],\"emphasis_sentences\":[]}"},"finish_reason":"stop"}]}

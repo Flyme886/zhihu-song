@@ -1,6 +1,0 @@
-GET https://developer.zhihu.com/api/v1/content/hot_list
-  --data-urlencode 'Limit=3'
-  --data-urlencode 'Hours=24'
-  -H 'Authorization: Bearer <REDACTED>'
-  -H 'X-Request-Timestamp: <unix秒>'
-HTTP 200, 耗时 0.26s, 2026-08-30T15:24:20+0800

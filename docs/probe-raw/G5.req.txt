@@ -1,6 +1,0 @@
-GET https://developer.zhihu.com/api/v1/content/zhihu_search
-  --data-urlencode 'Query=AI 辅助学习 依赖'
-  --data-urlencode 'Count=10'
-  -H 'Authorization: Bearer <REDACTED>'
-  -H 'X-Request-Timestamp: <unix秒>'
-HTTP 200, 耗时 0.66s, 2026-09-01T18:15:16+0800

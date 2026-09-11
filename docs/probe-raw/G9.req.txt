@@ -1,8 +1,0 @@
-GET https://developer.zhihu.com/api/v1/content/global_search
-  --data-urlencode 'Query=学习方法 自学 前提 建议 步骤'
-  --data-urlencode 'Count=20'
-  --data-urlencode 'Filter=publish_time>=1451577600 AND publish_time<=1483199999'
-  --data-urlencode 'SearchDB=all'
-  -H 'Authorization: Bearer <REDACTED>'
-  -H 'X-Request-Timestamp: <unix秒>'
-HTTP 200, 耗时 1.23s, 2026-09-01T18:17:11+0800

@@ -1,8 +1,0 @@
-GET https://developer.zhihu.com/api/v1/content/global_search
-  --data-urlencode 'Query=远程办公 效率'
-  --data-urlencode 'Count=20'
-  --data-urlencode 'Filter=publish_time<=1483200000'
-  --data-urlencode 'SearchDB=all'
-  -H 'Authorization: Bearer <REDACTED>'
-  -H 'X-Request-Timestamp: <unix秒>'
-HTTP 200, 耗时 1.53s, 2026-08-30T14:16:16+0800
