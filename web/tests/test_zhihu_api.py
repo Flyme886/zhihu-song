@@ -3,6 +3,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import zhihu_api as z
 import tempfile
+import json
 import unittest
 from unittest.mock import patch
 
@@ -23,15 +24,52 @@ class ZhihuTest(unittest.TestCase):
     def test_topic_cache_isolation_and_nonhistorical_search(self):
         with tempfile.TemporaryDirectory() as d, patch.object(z,'CACHE',Path(d)/'robotaxi.json'), patch.object(z,'secret',return_value='test-only'), patch.object(z,'ATTEMPTS',{}):
             def response(path,params):
-                qid='286619877' if '蜗牛' in params['Query'] else '356196758'
+                self.assertEqual(path,'/api/v1/content/question_answers')
+                qid=params['QuestionUrl'].rsplit('/',1)[-1]
                 self.assertNotIn('SortBy',params)
-                return {'Data':{'Items':[item(str(i),Url=f'https://www.zhihu.com/question/{qid}/answer/{i}') for i in (123,456)]}}
+                return {'Data':{'Items':[{'ContentType':'answer','ContentToken':str(i),'Url':f'https://www.zhihu.com/question/{qid}/answer/{i}','Summary':'本题的一份真实接口格式摘要。'} for i in (123,456)],'Paging':{'IsEnd':True}}}
             with patch.object(z,'request',side_effect=response) as request:
                 z.sync('snail');z.sync('cat-art');z.sync('snail')
-                self.assertEqual(request.call_count,4)
+                self.assertEqual(request.call_count,2)
             self.assertEqual(z.cached('snail')['topicId'],'snail')
             self.assertEqual(z.cached('cat-art')['topicId'],'cat-art')
             self.assertFalse(z.cached()['answers'])
+
+    def test_question_summary_without_author_and_one_result_is_usable(self):
+        value={'ContentType':'answer','ContentToken':'123','Url':'https://www.zhihu.com/question/286619877/answer/123?utm_source=test','Summary':'<p>一份很短的摘要。</p>'}
+        n=z.normalize_question_answer(value,'snail','286619877')
+        self.assertEqual(n['author'],'作者信息未提供')
+        self.assertEqual(n['avatar'],'')
+        self.assertNotIn('published',n)
+        self.assertEqual(n['body'],'一份很短的摘要。')
+        self.assertIn('utm_source=test',n['url'])
+        self.assertIsNone(z.normalize_question_answer(dict(value,ContentToken='999'),'snail','286619877'))
+        self.assertIsNone(z.normalize_question_answer(value,'snail','356196758'))
+        with tempfile.TemporaryDirectory() as d, patch.object(z,'CACHE',Path(d)/'robotaxi.json'), patch.object(z,'secret',return_value='test-only'), patch.object(z,'ATTEMPTS',{}):
+            with patch.object(z,'request',return_value={'Data':{'Items':[value],'Paging':{'IsEnd':True}}}):
+                self.assertEqual(len(z.sync('snail')['answers']),1)
+
+    def test_question_pagination_uses_server_cursor_after_empty_page(self):
+        value={'ContentType':'answer','ContentToken':'123','Url':'https://www.zhihu.com/answer/123','Summary':'第二页的有效摘要'}
+        with tempfile.TemporaryDirectory() as d, patch.object(z,'CACHE',Path(d)/'robotaxi.json'), patch.object(z,'secret',return_value='test-only'), patch.object(z,'ATTEMPTS',{}):
+            responses=[{'Data':{'Items':[],'Paging':{'IsEnd':False,'NextOffset':31}}},{'Data':{'Items':[value],'Paging':{'IsEnd':True}}}]
+            with patch.object(z,'request',side_effect=responses) as request:
+                data=z.sync('snail')
+                self.assertEqual(request.call_args_list[1].args[1]['Offset'],31)
+                self.assertEqual(data['requestCount'],2)
+            with patch.object(z,'request') as request:
+                self.assertTrue(z.sync('snail')['fromCache'])
+                request.assert_not_called()
+                with self.assertRaises(z.APIError) as e:z.sync('snail',force=True)
+                self.assertEqual(e.exception.status,429)
+
+    def test_bad_pagination_keeps_previous_cache(self):
+        with tempfile.TemporaryDirectory() as d, patch.object(z,'CACHE',Path(d)/'robotaxi.json'), patch.object(z,'secret',return_value='test-only'), patch.object(z,'ATTEMPTS',{}):
+            old={'version':1,'topicId':'snail','answers':[{'id':'old'}],'syncedAt':1}
+            z.cache_path('snail').write_text(json.dumps(old))
+            with patch.object(z,'request',return_value={'Data':{'Items':[],'Paging':{'IsEnd':False,'NextOffset':0}}}):
+                with self.assertRaises(z.APIError):z.sync('snail')
+            self.assertEqual(z.cached('snail'),old)
 
     def test_normalize_provenance(self):
         n=z.normalize(item())
@@ -44,6 +82,21 @@ class ZhihuTest(unittest.TestCase):
         self.assertIsNone(z.normalize(item(ContentType='Question')))
         self.assertIsNone(z.normalize(item(Url='https://evil.example/123')))
         self.assertEqual(z.normalize(item(AuthorAvatar='javascript:alert(1)'))['avatar'],'')
+
+    def test_search_index_hash_is_not_the_answer_id(self):
+        n=z.normalize(item(ContentID='-1414549421237729668'))
+        self.assertEqual(n['answerId'],'123')
+        self.assertEqual(n['contentStatus'],'excerpt')
+        self.assertNotIn('contentHtml',n)
+
+    def test_cached_excerpts_cannot_overwrite_verified_originals(self):
+        original=z.TOPICS['snail']['answers'][0]
+        with tempfile.TemporaryDirectory() as d, patch.object(z,'CACHE',Path(d)/'robotaxi.json'):
+            data={'version':1,'topicId':'snail','answers':[{'answerId':original['answerId'],'body':'截取文本','contentStatus':'excerpt'},{'answerId':'999','body':'新摘要','contentStatus':'excerpt'}]}
+            z.cache_path('snail').write_text(json.dumps(data))
+            answers=z.cached('snail')['answers']
+            self.assertEqual(answers[0],original)
+            self.assertEqual(answers[1]['contentStatus'],'excerpt')
 
     def test_cache_dedup_and_no_calls_on_reload(self):
         with tempfile.TemporaryDirectory() as d, patch.object(z,'CACHE',Path(d)/'data.json'), patch.object(z,'secret',return_value='test-only'), patch.object(z,'LAST_ATTEMPT',0):
@@ -69,5 +122,14 @@ class ZhihuTest(unittest.TestCase):
             payload=request.call_args.kwargs['payload']
             self.assertEqual(set(payload),{'model','messages','stream'})
             self.assertEqual(payload['messages'],messages)
+
+    def test_real_completion_metadata_and_empty_reply_rejection(self):
+        with patch.object(z,'request',return_value={'id':'request-123','choices':[{'message':{'content':'实际模型返回'},'finish_reason':'stop'}]}):
+            result=z.completion([])
+            self.assertEqual(result['requestId'],'request-123')
+            self.assertEqual(result['provider'],'zhihu')
+            self.assertFalse(result['fromCache'])
+        for response in [{'choices':[{'message':{'content':''}}]},{'choices':[{'message':{'content':'半段'},'finish_reason':'error'}]}]:
+            with patch.object(z,'request',return_value=response),self.assertRaises(z.APIError):z.completion([])
 
 if __name__=='__main__':unittest.main()

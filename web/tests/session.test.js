@@ -15,9 +15,9 @@ test('new selection and cancellation reject late responses',()=>{
  const req=new LatestRequest(),a=req.begin(),b=req.begin();assert.ok(a.signal.aborted);assert.equal(a.current(),false);assert.equal(b.current(),true);req.cancel();assert.equal(b.current(),false);
 });
 test('snapshot does not persist DOM, requests, animation state or credentials',()=>{
- const n={id:'a',body:'text',author:'A',source:'source',el:{cycle:null},time:44,apiKey:'no'};n.el.cycle=n;
+ const n={id:'a',body:'text',contentHtml:'<p>完整原文</p>',contentStatus:'full',publishedText:'发布于2018-07-24',author:'A',source:'source',el:{cycle:null},time:44,apiKey:'no'};n.el.cycle=n;
  const d={source:n,target:{...n,id:'b'},turn:1,messages:[],additions:[],auto:true,busy:true};const snapshot=snapshotDiscussion(d);
- assert.doesNotThrow(()=>JSON.stringify(snapshot));assert.equal(snapshot.source.apiKey,undefined);assert.equal(snapshot.auto,undefined);
+ assert.doesNotThrow(()=>JSON.stringify(snapshot));assert.equal(snapshot.source.apiKey,undefined);assert.equal(snapshot.auto,undefined);assert.equal(snapshot.source.contentHtml,n.contentHtml);assert.equal(snapshot.source.contentStatus,'full');assert.equal(snapshot.source.publishedText,n.publishedText);
 });
 test('eggs trigger only on their explicit event; export keeps reviewed note and source links',()=>{
  assert.equal(eggAvailable({egg:{event:'paired'}},'two-turns'),false);assert.equal(eggAvailable({egg:{event:'paired'}},'paired'),true);

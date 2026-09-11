@@ -22,15 +22,15 @@
 
 开发版本在 [`web/`](web/)，原始交付包保留在 `releases/`。
 
-当前开发案例为 **2024 年萝卜快跑讨论**。保留统一彩色粒子、相似连接/分歧排斥、9:16卡片、Agent 对谈与记录回看，新增三个主持人假设条件和案例来源面板。
+当前开发版本包含 **9 个话题、34 条知乎原回答**。所有答案星球都采用核对过的原始正文，保留作者、段落、配图和原文链接；统一 9:16 卡片支持上一条、下一条切换，长文可滚动及展开阅读。旧的概括和策划回答已退出当前画布，历史讨论快照保留当时内容。
 
-**当前没有可用知乎凭证，默认展示明确标注的案例策划。真实答主材料尚待同步验收，不冒充知乎原文。** 配置后可通过“案例与来源 → 同步知乎回答摘要”加载2024年的真实回答摘要、作者、头像和原链接。摘要不等于完整回答，关系由用户确认。
+在线取材与对谈保留真实知乎 API 接入。问题回答与搜索接口返回的是摘要，新发现但尚未核对全文的回答仅在来源面板提供原文入口；它们不会覆盖已有原文或伪装成完整回答。萝卜快跑继续限定 2024 年历史讨论。实时对谈默认优先知乎直答，离线演示需明确选择。此前真实调用记录见 [演示 API 接入验收](docs/思想引力场_演示API接入验收_2026-09-11.md)，原文替换与阅读验收见 [原回答卡片验收](docs/planet/original-answers-2026-09-11.md)。
 
 运行：`npm --prefix web run dev`，打开 `http://127.0.0.1:8081`。测试：`npm --prefix web test`；`PYTHONPYCACHEPREFIX=/tmp/zhihu-pycache python3 -m unittest discover -s web/tests -p 'test_*.py'`。
 
-知乎适配器只在服务端读取 `ZHIHU_ACCESS_SECRET` 或 `ZHIHU_SECRET_FILE`（默认 `/tmp/zhihu-probe/.secret`）。同步最多两次搜索，结果缓存24小时；页面刷新不调用上游。直答默认 `zhida-fast-1p5`，使用 model/messages/stream 正式参数。配置与真实调用成功是两个不同状态。
+知乎适配器只在服务端读取 `ZHIHU_ACCESS_SECRET` 或 `ZHIHU_SECRET_FILE`（默认 `/tmp/zhihu-probe/.secret`）。每次取材最多两次上游请求，结果缓存24小时；页面刷新只读取缓存，另有主动重新获取入口。直答默认 `zhida-fast-1p5`，使用 model/messages/stream 正式参数。配置与真实调用成功是两个不同状态。
 
-也保留 OpenAI 兼容模型配置：`AGENT_API_KEY`、`AGENT_API_BASE`（以 `/v1` 结尾）、`AGENT_MODEL`。无凭证时可使用离线演练。
+也保留 OpenAI 兼容模型配置：`AGENT_API_KEY`、`AGENT_API_BASE`（以 `/v1` 结尾）、`AGENT_MODEL`。自动模式只按配置选择服务，真实请求失败时不回退模板；离线演练由用户自行选择。
 
 当前仅本机预览，未发布公网。[API核验、实现与验收状态](docs/萝卜快跑_知乎API调研与案例接入_2026-09-11.md)。原兰大摘录归档在 `web/cases/lanzhou-archive.js`。
 

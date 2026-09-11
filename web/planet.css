@@ -9,7 +9,7 @@ body[data-view="world"] .cinema-vignette,body[data-view="world"] .cosmic-header{
 @keyframes memory-arrive{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}@keyframes sound-wave{to{transform:scaleY(.35)}}
 @media(min-width:1600px){.home-copy{top:32%}.home-description{font-size:15px}.cosmic-primary{font-size:14px;padding-left:28px}.arrow-orbit{width:39px;height:39px}.home-memory{font-size:12px}}
 @media(max-width:900px){.cosmic-header{height:96px;padding:0 28px}.cosmic-brand{font-size:13px;letter-spacing:2px;gap:13px}.cosmic-navigation{gap:20px}.cosmic-navigation button{font-size:11px}.home-copy{left:7vw;top:33%}.home-copy h1{font-size:39px;letter-spacing:4px}.home-description{font-size:12px}.home-bottom{left:28px;right:28px}.sound-controls{right:28px}.surface-intro{left:6vw;top:19%}.surface-footer{left:28px;right:28px}.surface-footer p{display:none}#memory-panel{width:48vw;right:16px;padding:22px;top:92px}.memory-nav button{padding:9px 13px}.surface-intro h1{font-size:28px}body[data-reading="true"] .memory-nav{left:24%}body[data-view="world"] .topbar .brand{display:none}}
-@media(max-width:700px){.cosmic-header{height:85px;padding:0 23px;align-items:center}.cosmic-brand{font-size:12px;letter-spacing:2px;gap:11px}.cosmic-brand small{font-size:6px;letter-spacing:1.6px;margin-top:7px}.orbit-symbol{width:22px;height:22px}.orbit-symbol:after{inset:6px -7px}.cosmic-navigation{gap:15px}.cosmic-navigation button{font-size:10px;letter-spacing:.3px}.cosmic-navigation span{margin-left:5px}body[data-view="home"] #cosmic-my-planet{display:none}.home-copy{left:8vw;right:7vw;top:auto;bottom:15.5%;}.home-copy .cosmic-kicker{font-size:7px;letter-spacing:2.7px;margin-bottom:18px}.home-copy h1{font-size:38px;line-height:1.4;letter-spacing:4px;margin-bottom:17px}.home-description{font-size:11px;line-height:2;letter-spacing:1px;margin-bottom:23px}.home-description br{display:none}.cosmic-primary{font-size:11px;letter-spacing:1px;padding:7px 8px 7px 21px;gap:30px}.arrow-orbit{width:29px;height:29px;font-size:16px}.home-memory{font-size:9px;margin-top:14px}.home-bottom{bottom:27px;left:24px;font-size:8px}.home-bottom>span:last-child{display:none}#planet-orb-hit{left:30%;top:13%;width:45%;height:28%}.orb-caption{display:none}.cinema-vignette{background:linear-gradient(0deg,#02050bf5,transparent 75%),linear-gradient(180deg,#02050b55,transparent 25%);box-shadow:inset 0 0 55px #0004}.sound-controls{bottom:21px;right:24px;gap:10px}.sound-controls button{font-size:8px}.surface-intro{top:16%;left:7vw;right:7vw}.surface-intro h1{font-size:26px;letter-spacing:2px}.surface-intro .cosmic-kicker{font-size:7px;letter-spacing:3px;margin-bottom:15px}.surface-intro>p:last-child{font-size:10px;letter-spacing:.5px}.landmarks>button{top:57%!important;left:18%!important;min-width:96px;padding:10px 5px}.landmarks>button:nth-child(2){top:49%!important;left:50%!important}.landmarks>button:nth-child(3){left:82%!important;top:58%!important}.landmarks strong{font-size:11px;letter-spacing:.5px}.landmarks em{font-size:8px;letter-spacing:0}.landmarks small{font-size:7px}.landmarks b{width:20px;height:20px;line-height:19px;font-size:8px}.beacon-dot{margin-bottom:17px}.memory-nav{bottom:150px;width:max-content;max-width:calc(100vw - 28px);padding:4px;left:50%!important}.memory-nav button{font-size:9px;padding:9px 13px}.surface-footer{bottom:80px;left:25px;right:25px;padding-right:0;gap:15px}.surface-footer button{font-size:10px}.surface-footer p{display:none}#memory-panel{right:0;left:0;top:auto;bottom:0;width:100%;height:min(76dvh,760px);border-radius:22px 22px 0 0;padding:21px 23px 20px;box-shadow:0 -20px 90px #0009;z-index:20}#memory-panel:before{content:'';height:3px;width:30px;background:#8aaccd44;border-radius:3px;position:absolute;top:8px;left:calc(50% - 15px)}#memory-title{font-size:25px;margin:13px 0 18px}.memory-search input{font-size:13px}.memory-filters select{font-size:11px}.memory-panel-top>span{font-size:8px}.memory-card h3{font-size:14px}.memory-text p{font-size:14px}.memory-bottom{padding-bottom:env(safe-area-inset-bottom,0px);font-size:9px}.memory-detail-title{font-size:18px}.memory-nav{background:#08121fbd}.sound-controls{z-index:22}body[data-reading="true"] .sound-controls{bottom:auto;top:100px;right:22px}body[data-reading="true"] #sound-panel{bottom:auto;top:139px;z-index:25}body[data-reading="true"] .surface-footer,body[data-reading="true"] .memory-nav{visibility:hidden}body[data-reading="true"] .surface-intro{display:none}#sound-panel{right:17px;bottom:65px;width:255px}#planet-toast{bottom:auto;top:95px;max-width:90vw;white-space:normal;width:max-content;font-size:10px;padding:11px 16px}.travel-caption{bottom:24%}.travel-caption>span{font-size:20px;letter-spacing:5px}.travel-caption small{font-size:9px;letter-spacing:1px}#skip-travel{bottom:94px}.home-copy{z-index:3}body[data-renderer="fallback"][data-view="home"] #app:after{left:35%;top:16%;width:47vw}}
+@media(max-width:700px){.cosmic-header{height:85px;padding:0 23px;align-items:center}.cosmic-brand{font-size:12px;letter-spacing:2px;gap:11px}.cosmic-brand small{font-size:6px;letter-spacing:1.6px;margin-top:7px}.orbit-symbol{width:22px;height:22px}.orbit-symbol:after{inset:6px -7px}.cosmic-navigation{gap:15px}.cosmic-navigation button{font-size:10px;letter-spacing:.3px}.cosmic-navigation span{margin-left:5px}body[data-view="home"] #cosmic-my-planet{display:none}.home-copy{left:8vw;right:7vw;top:auto;bottom:15.5%;}.home-copy .cosmic-kicker{font-size:7px;letter-spacing:2.7px;margin-bottom:18px}.home-copy h1{font-size:38px;line-height:1.4;letter-spacing:4px;margin-bottom:17px}.home-description{font-size:11px;line-height:2;letter-spacing:1px;margin-bottom:23px}.home-description br{display:none}.cosmic-primary{font-size:11px;letter-spacing:1px;padding:7px 8px 7px 21px;gap:30px}.arrow-orbit{width:29px;height:29px;font-size:16px}.home-memory{font-size:9px;margin-top:14px}.home-bottom{bottom:27px;left:24px;font-size:8px}.home-bottom>span:last-child{display:none}#planet-orb-hit{left:30%;top:13%;width:45%;height:28%}.orb-caption{display:none}.cinema-vignette{background:linear-gradient(0deg,#02050bf5,transparent 75%),linear-gradient(180deg,#02050b55,transparent 25%);box-shadow:inset 0 0 55px #0004}.sound-controls{bottom:21px;right:24px;gap:10px}.sound-controls button{font-size:8px}.surface-intro{top:16%;left:7vw;right:7vw}.surface-intro h1{font-size:26px;letter-spacing:2px}.surface-intro .cosmic-kicker{font-size:7px;letter-spacing:3px;margin-bottom:15px}.surface-intro>p:last-child{font-size:10px;letter-spacing:.5px}.landmarks>button{min-width:104px;padding:10px 5px}.landmarks strong{font-size:11px;letter-spacing:.5px}.landmarks em{font-size:8px;letter-spacing:0}.landmarks small{font-size:7px}.landmarks b{width:20px;height:20px;line-height:19px;font-size:8px}.beacon-dot{margin-bottom:17px}.memory-nav{bottom:150px;width:max-content;max-width:calc(100vw - 28px);padding:4px;left:50%!important}.memory-nav button{font-size:9px;padding:9px 13px}.surface-footer{bottom:80px;left:25px;right:25px;padding-right:0;gap:15px}.surface-footer button{font-size:10px}.surface-footer p{display:none}#memory-panel{right:0;left:0;top:auto;bottom:0;width:100%;height:min(76dvh,760px);border-radius:22px 22px 0 0;padding:21px 23px 20px;box-shadow:0 -20px 90px #0009;z-index:20}#memory-panel:before{content:'';height:3px;width:30px;background:#8aaccd44;border-radius:3px;position:absolute;top:8px;left:calc(50% - 15px)}#memory-title{font-size:25px;margin:13px 0 18px}.memory-search input{font-size:13px}.memory-filters select{font-size:11px}.memory-panel-top>span{font-size:8px}.memory-card h3{font-size:14px}.memory-text p{font-size:14px}.memory-bottom{padding-bottom:env(safe-area-inset-bottom,0px);font-size:9px}.memory-detail-title{font-size:18px}.memory-nav{background:#08121fbd}.sound-controls{z-index:22}body[data-reading="true"] .sound-controls{bottom:auto;top:100px;right:22px}body[data-reading="true"] #sound-panel{bottom:auto;top:139px;z-index:25}body[data-reading="true"] .surface-footer,body[data-reading="true"] .memory-nav{visibility:hidden}body[data-reading="true"] .surface-intro{display:none}#sound-panel{right:17px;bottom:65px;width:255px}#planet-toast{bottom:auto;top:95px;max-width:90vw;white-space:normal;width:max-content;font-size:10px;padding:11px 16px}.travel-caption{bottom:24%}.travel-caption>span{font-size:20px;letter-spacing:5px}.travel-caption small{font-size:9px;letter-spacing:1px}#skip-travel{bottom:94px}.home-copy{z-index:3}body[data-renderer="fallback"][data-view="home"] #app:after{left:35%;top:16%;width:47vw}}
 @media(max-height:640px) and (min-width:701px){.cosmic-header{height:80px}.home-copy{top:25%}.home-copy h1{font-size:36px;margin-bottom:16px}.home-description{margin-bottom:19px}.cosmic-kicker{margin-bottom:15px}.home-memory{margin-top:12px}.surface-intro{top:20%}.surface-intro h1{font-size:25px}.landmarks em{display:none}.memory-nav{bottom:87px}#memory-panel{top:82px;bottom:68px}.home-bottom{bottom:24px}.sound-controls,.surface-footer{bottom:20px}}
 @media(prefers-reduced-motion:reduce){.planet-shell *,body[data-sound="on"] .sound-bars i{animation:none!important;transition:none!important}}body[data-cosmic-paused="true"] .sound-bars i{animation:none}
 body:not([data-view="world"]) #app>:not(#universe){display:none!important}
@@ -18,3 +18,225 @@ body>#profile{display:none;position:fixed;right:30px;top:25px;z-index:29;height:
 #memory-title:focus{outline:none}body[data-pointer="mouse"] .landmarks>button:focus-visible,body[data-pointer="touch"] .landmarks>button:focus-visible{outline:none}
 body[data-pointer="mouse"] .planet-shell button:focus-visible,body[data-pointer="touch"] .planet-shell button:focus-visible{outline:none}
 #storage-warning{top:88px;bottom:auto;left:50%;right:auto;transform:translateX(-50%);width:min(520px,calc(100vw - 36px));border:1px solid #c8a87855;border-radius:9px;padding:10px 15px;line-height:1.7;font-size:11px;box-shadow:0 8px 25px #0005;pointer-events:none}
+/* A live draft forms in the same renderer as the public planets. */
+#app[data-composing="true"] #entry{top:auto;bottom:38px;width:min(480px,calc(100% - 40px))}
+#app[data-composing="true"] #world-context,#app[data-composing="true"] #compose,#app[data-composing="true"] #world-footer,#app[data-composing="true"] #case-bar,#app[data-composing="true"] #pair-status,#app[data-composing="true"] #start-agents,#app[data-composing="true"] #saved-record{visibility:hidden;pointer-events:none}
+body[data-view="world"]:has(#app[data-composing="true"]) .sound-controls{bottom:22px}
+#relation-choices{display:grid;gap:8px;margin-bottom:12px}
+#relation-choices button{border:1px solid #bad8ee30;border-radius:9px;padding:11px 13px;text-align:left;color:#bed9e9;background:#b9d9ee08;font-size:12px}
+#relation-choices button:hover:not(:disabled){background:#b9d9ee18;border-color:#bad8ee66}
+#relation-choices button[data-confirm-relation="different"]{color:#d7c8eb}
+#relation-choices button[data-confirm-relation="unrelated"]{font-size:11px;color:#869dac;padding-block:7px}
+#relation-card[data-kind="unknown"] .eyebrow{color:#a4c2d7}
+#relation-card[data-kind="unknown"] h2{font-size:18px}
+body[data-renderer="fallback"] #app[data-composing="true"]:after{content:'';position:absolute;left:50%;top:90px;transform:translateX(-50%);width:min(36vw,220px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 34% 27%,#d9f3ff80,#537d9b55 40%,#091c30 72%);border:1px solid #b8d6ed55;box-shadow:0 0 40px #91cbea24;pointer-events:none}
+@media(max-width:700px){#app[data-composing="true"] #entry{bottom:36px}#app[data-composing="true"] #knowledge{font-size:16px;max-height:115px}#relation-card{max-height:calc(100dvh - 240px);overflow:auto}#relation-card[data-kind="unknown"]{bottom:110px}body[data-view="world"]:has(#app[data-composing="true"]) .sound-controls{bottom:8px}#app[data-composing="true"] .entry-note{font-size:10px}}
+@media(max-height:580px){#app[data-composing="true"] #entry{bottom:14px}#app[data-composing="true"] #knowledge{max-height:68px}#app[data-composing="true"] .entry-label{margin-bottom:10px}#app[data-composing="true"] .entry-note{display:none}}
+/* Keep the current pair controls reachable while approaching a third viewpoint. */
+#app[data-paired="true"] #relation-card{bottom:235px;max-height:calc(100dvh - 330px);overflow:auto}
+@media(max-width:700px){#app[data-paired="true"] #relation-card{bottom:244px;max-height:calc(100dvh - 340px)}}
+
+@media(max-width:700px){
+  #relation-card,#relation-card[data-kind="unknown"],#app[data-paired="true"] #relation-card{bottom:110px;max-height:210px;padding:12px 16px;overflow:auto}
+  #relation-card h2{font-size:15px;margin:4px 0 6px}
+  #relation-card[data-kind="unknown"] h2{display:none}
+  #relation-card p{font-size:11px;line-height:1.65;margin:7px 0 9px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  #relation-choices{grid-template-columns:1fr 1fr;gap:6px;margin-bottom:0}
+  #relation-choices button{font-size:11px;padding:9px 8px;white-space:nowrap}
+  #relation-choices button[data-confirm-relation="unrelated"]{border-color:transparent;background:none}
+  #relation-card[data-kind="unknown"] .relation-actions{position:absolute;right:18px;bottom:14px}
+  #relation-card[data-kind="unknown"] #relation-edit{font-size:11px;padding:0}
+  #app[data-paired="true"] #pair-status{top:80px;bottom:auto}
+  #app[data-paired="true"] #world-context{top:150px}
+  #app:has(#relation-card:not([hidden])) #compose,
+  #app:has(#relation-card:not([hidden])) #start-agents,
+  body:has(#relation-card:not([hidden])) #egg-trigger{visibility:hidden;pointer-events:none}
+  body[data-view="world"] .sound-controls{left:20px;right:auto;bottom:17px;gap:9px}
+  body[data-view="world"] #sound-panel{left:17px;right:auto;bottom:62px}
+}
+
+/* One reading layout for every original answer, including long illustrated posts. */
+.original-content{white-space:normal;overflow-wrap:anywhere;line-height:1.85}
+.original-content p,.original-content blockquote,.original-content figure{margin:0 0 1em}
+#hover-card .original-content p{display:block;-webkit-line-clamp:unset;overflow:visible;font-size:inherit;line-height:inherit;margin:0 0 1em}
+#hover-card .original-content h2{display:block;-webkit-line-clamp:unset;overflow:visible;font-size:1.12em}
+.original-content img{display:block;max-width:100%;height:auto;margin:12px auto;border-radius:4px}
+.original-content a{color:#a6cee9;text-decoration:underline;text-underline-offset:3px}
+.original-content blockquote{border-left:2px solid #9bc3df55;padding:4px 0 4px 14px;color:#9eb7ca}
+.original-content h1,.original-content h2,.original-content h3{font-size:1.12em;line-height:1.65;margin:1em 0 .6em}
+.original-content pre{white-space:pre-wrap;font-size:.9em;background:#adcbeb09;padding:12px}
+.original-content ul,.original-content ol{padding-left:1.5em}
+.original-content table{display:block;max-width:100%;overflow:auto;border-collapse:collapse;font-size:.9em}
+.original-content td,.original-content th{border:1px solid #a8c9e32b;padding:6px}
+.original-content figcaption{font-size:.85em;color:#7f9db4;text-align:center}
+#hover-card h2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;flex-shrink:0}
+#hover-card .answer-reading{min-height:0;flex:1;overscroll-behavior:contain;font-size:13px}
+#hover-card .answer-person{flex-shrink:0}
+#hover-card .answer-person small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px}
+.answer-meta{align-items:center;gap:8px;flex-shrink:0}
+.answer-meta span{font-size:9px;min-width:0}
+.answer-meta a{white-space:nowrap;font-size:10px}
+.answer-navigation{display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid #b4d1e620;flex-shrink:0;padding:3px 0}
+.answer-navigation button{color:#c2dfef;font-size:17px;min-width:40px;padding:5px 10px;border-radius:6px}
+.answer-navigation button:hover{background:#b6d8ee12}
+.answer-navigation span{font-size:10px;color:#8caabe;font-variant-numeric:tabular-nums}
+#detail[open]{display:flex;flex-direction:column;inset:0;margin:auto;width:min(680px,calc(100vw - 32px));height:90dvh;max-height:900px;overflow:hidden}
+#detail .dialog-top,#detail .detail-actions,#detail #relation-settings,#detail #approach{flex-shrink:0}
+#detail .detail-dot{display:none}
+#detail-title{font-size:21px;line-height:1.6;margin:12px 0;flex-shrink:0}
+.detail-author-row{display:flex;align-items:center;gap:10px;flex-shrink:0;font-size:13px}
+.detail-author-row img{width:30px;height:30px;object-fit:cover;border-radius:50%}
+.detail-author-row a{margin-left:auto;font-size:11px;color:#9cbfd9;white-space:nowrap}
+#detail-meta{font-size:10px;margin:9px 0 12px;flex-shrink:0}
+#detail-body{overflow:auto;overscroll-behavior:contain;min-height:0;flex:1;padding-right:8px;margin:14px 0;font-size:14px;white-space:normal}
+#detail #relation-settings{margin:6px 0;padding:8px 0}
+#detail .detail-actions{margin:4px 0 8px;gap:12px}
+@media(max-width:700px){#detail[open]{padding:18px;height:91dvh}#detail-title{font-size:17px}#detail-body{font-size:14px}.detail-author-row strong{max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#hover-card .answer-reading{font-size:13px}}
+
+/* Readable type and dependable spacing within the existing planet landscape. */
+.cosmic-navigation button,.cosmic-primary{font-size:14px}
+.cosmic-brand small,.orb-caption small{font-size:10px;letter-spacing:1.8px}
+.cosmic-kicker,.surface-intro .cosmic-kicker{font-size:11px;letter-spacing:2.6px}
+.home-description{font-size:16px;line-height:1.95;letter-spacing:.7px;color:#a4b6c8}
+.home-memory{font-size:13px;color:#91a8bc;line-height:1.7}
+.home-bottom{font-size:12px;letter-spacing:1px;color:#91a6b9}
+.home-bottom>span:last-child{font-size:10px}
+.orb-caption{font-size:14px;letter-spacing:2px}
+.travel-caption small{font-size:14px;line-height:1.7;letter-spacing:1px}
+#skip-travel{font-size:14px;min-height:44px}
+.surface-intro>p:last-child{font-size:15px;line-height:1.8;letter-spacing:.5px;color:#a8bdcf}
+.landmarks>button{min-width:150px;max-width:190px;padding:10px 12px 15px;line-height:1.5;transform:translate(-50%,0)}
+.landmarks strong{font-size:16px;letter-spacing:1px;line-height:1.5}
+.landmarks small{font-size:11px;color:#b9cbd9}
+.landmarks em{font-size:13px;line-height:1.6;color:#a7bed1;letter-spacing:.2px}
+.landmarks b{font-size:12px;width:26px;height:26px;line-height:25px}
+.surface-footer{padding-right:190px}
+.surface-footer button{font-size:14px;min-height:44px}
+.surface-footer p{font-size:12px;letter-spacing:.8px}
+.memory-nav{border-color:#b2c5dd30;background:#07111ed9}
+.memory-nav button{font-size:14px;min-height:42px;padding:9px 18px;letter-spacing:.2px}
+.memory-panel-top>span{font-size:11px;letter-spacing:1.5px;color:#9bb5cc}
+#memory-panel{background:linear-gradient(140deg,#101c29fc,#080f1afc)}
+#close-memory{min-width:36px;min-height:36px}
+.memory-search input{font-size:16px}
+.memory-search input::placeholder{color:#91a7bc}
+.memory-filters select{font-size:13px;min-height:38px;color:#b4c9da}
+.memory-card small,.memory-date{font-size:12px;color:#a0b7ca}
+.memory-card h3{font-size:17px;line-height:1.7}
+.memory-card p,.memory-sources p,.memory-count{font-size:15px;line-height:1.85;color:#aec3d5}
+.memory-card>span,.memory-bottom,.memory-bottom button{font-size:12px;color:#a5bed2}
+.memory-back,.memory-action,.memory-sources a,.memory-source-link{font-size:14px;line-height:1.6}
+.memory-action{min-height:42px}
+.memory-detail-title{font-size:21px}
+.memory-text h3,.memory-sources>h3{font-size:13px;letter-spacing:.5px}
+.memory-text p{font-size:16px;line-height:1.95;color:#c1d2df}
+.memory-sources small{font-size:12px;color:#9db3c6}
+.memory-sources h4{font-size:15px}
+.memory-empty-title+.memory-text p{font-size:15px;color:#a8bfd1}
+#memory-content details{font-size:14px}
+#memory-pagination{font-size:13px}
+#memory-pagination button{min-width:36px;min-height:36px}
+.sound-controls{gap:13px}
+.sound-controls button{font-size:13px;min-height:40px;color:#b2c7da}
+#sound-settings{font-size:18px;min-width:34px;padding-left:13px}
+.sound-panel-title{font-size:16px}
+#sound-panel{width:290px;padding:20px 22px}
+#sound-panel label{font-size:14px;color:#afc5d8;margin:19px 0}
+#sound-panel input{height:5px}
+#sound-panel p{font-size:13px;color:#94abc0;line-height:1.8}
+#cosmic-pause{font-size:14px;min-height:40px}
+#planet-toast{font-size:14px;line-height:1.7;max-width:calc(100vw - 36px);white-space:normal;width:max-content;text-align:center}
+
+@media(min-width:701px) and (max-width:1100px){
+  .home-copy{left:7vw;max-width:47vw}
+  .home-description{font-size:15px}
+  .home-copy h1{font-size:clamp(36px,4.2vw,46px);letter-spacing:3px}
+  .surface-footer p{display:none}
+  .surface-footer{gap:14px}
+  #memory-panel{width:min(500px,50vw);padding:24px}
+  body[data-reading="true"] .memory-nav{left:23%;max-width:43vw}
+  body[data-reading="true"] .memory-nav button{padding-inline:10px;font-size:13px}
+}
+@media(max-width:700px){
+  .cosmic-header{height:90px;padding:0 22px}
+  .cosmic-brand{font-size:14px;letter-spacing:1.2px;gap:11px}
+  .cosmic-brand small{font-size:9px;letter-spacing:1px}
+  .cosmic-navigation{gap:12px}
+  .cosmic-navigation button{font-size:13px;letter-spacing:0;min-height:44px}
+  .cosmic-navigation span{margin-left:3px}
+  .home-copy{bottom:16.5%;left:8vw;right:8vw}
+  .home-copy .cosmic-kicker{font-size:10px;letter-spacing:2px}
+  .home-copy h1{font-size:38px;letter-spacing:3px}
+  .home-description{font-size:15px;line-height:1.85;letter-spacing:.3px;margin-bottom:23px}
+  .cosmic-primary{font-size:14px;min-height:48px;padding-left:22px}
+  .arrow-orbit{width:32px;height:32px}
+  .home-memory{font-size:12px;margin-top:15px}
+  .home-bottom{left:24px;bottom:26px;font-size:11px}
+  .surface-intro{top:17%;left:7vw;right:7vw}
+  .surface-intro .cosmic-kicker{font-size:10px;letter-spacing:2px}
+  .surface-intro h1{font-size:28px;letter-spacing:1px}
+  .surface-intro>p:last-child{font-size:14px}
+  .landmarks>button{min-width:104px;max-width:120px;padding:10px 5px}
+  .landmarks strong{font-size:14px;letter-spacing:0}
+  .landmarks em{font-size:12px;letter-spacing:0}
+  .landmarks small{font-size:11px}
+  .landmarks b{font-size:12px;width:25px;height:25px;line-height:24px}
+  .memory-nav{bottom:148px;width:max-content;max-width:calc(100vw - 28px)}
+  .memory-nav button{font-size:13px;padding:9px 12px}
+  .surface-footer{bottom:79px;left:24px;right:24px;padding-right:0}
+  .surface-footer button{font-size:13px;letter-spacing:0}
+  #memory-panel{height:min(78dvh,800px);padding:20px 22px 18px}
+  #memory-title{font-size:27px;margin:12px 0 18px}
+  .memory-detail-title{font-size:21px}
+  .memory-bottom{gap:8px;align-items:center}
+  .memory-bottom button{font-size:12px;padding:8px 0}
+  .sound-controls{right:22px;bottom:19px;gap:10px}
+  .sound-controls button{font-size:12px;min-height:40px}
+  #sound-panel{right:17px;bottom:67px;width:min(290px,calc(100vw - 34px))}
+  body[data-reading="true"] .sound-controls{top:96px;right:22px}
+  body[data-reading="true"] #sound-panel{top:143px;bottom:auto}
+  .travel-caption small{font-size:13px}
+  #planet-toast{font-size:13px;top:98px;padding:10px 16px}
+}
+@media(max-width:380px){
+  .cosmic-header{padding-inline:17px}
+  .cosmic-brand{font-size:13px;gap:9px}
+  .cosmic-navigation{gap:8px}
+  .cosmic-navigation button{font-size:12px}
+  .home-copy h1{font-size:34px}
+  .home-description{font-size:14px}
+  .memory-nav button{padding-inline:9px}
+  .landmarks>button{min-width:96px;max-width:110px}
+}
+@media(max-height:700px) and (max-width:700px){
+  .home-copy{bottom:14%;}
+  .home-copy h1{font-size:32px;margin-bottom:12px}
+  .home-copy .cosmic-kicker{margin-bottom:12px}
+  .home-description{font-size:14px;line-height:1.7;margin-bottom:16px}
+  .home-memory{margin-top:10px}
+  .surface-intro{top:16%}
+  .surface-intro h1{font-size:24px;margin-bottom:8px}
+  .surface-intro .cosmic-kicker{margin-bottom:10px}
+  .landmarks em{display:none}
+  .beacon-dot{margin-bottom:10px}
+  .memory-nav{bottom:126px}
+  .surface-footer{bottom:68px}
+}
+#pending-originals a{display:block;margin:10px 0;overflow-wrap:anywhere}
+
+/* Keep the homepage invitation clear of the permanent footer. */
+#home-memory:empty{display:none}
+.home-copy .home-path{font-size:12px;line-height:1.8;letter-spacing:.5px;margin:18px 0 0;color:#a1b7ca}
+.home-copy .home-memory{margin-top:14px}
+@media(min-width:701px) and (max-height:760px){
+  .home-copy{top:26%}
+  .home-copy .cosmic-kicker{margin-bottom:18px}
+  .home-copy h1{font-size:clamp(36px,3.6vw,46px);line-height:1.4;letter-spacing:4px;margin-bottom:20px}
+  .home-copy .home-description{font-size:15px;line-height:1.85;margin-bottom:24px}
+  .home-copy .home-path{margin-top:17px}
+  .home-copy .home-memory{font-size:12px;margin-top:12px}
+}
+@media(max-width:700px){
+  .home-copy .home-path{font-size:11px;letter-spacing:0;line-height:1.8;margin-top:15px}
+  .home-copy .home-memory{margin-top:12px}
+}

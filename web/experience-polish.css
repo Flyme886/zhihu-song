@@ -1,0 +1,304 @@
+/* Shared reading rhythm, with the particle canvas remaining the visual anchor. */
+:root{
+  --reading-ink:#c4d4e2;
+  --support-ink:#a2b8cb;
+  --quiet-ink:#8fa8bd;
+  --panel-line:#b9d5ed30;
+}
+input,textarea,select{font-size:16px}
+.eyebrow{font-size:12px;color:var(--support-ink);letter-spacing:1px}
+.sidebar-intro{font-size:14px;color:var(--support-ink);line-height:1.8}
+.sidebar-brand{font-family:'Songti SC','STSong',serif;font-size:22px;font-weight:400;letter-spacing:1px}
+.sidebar-brand span{font-family:Inter,'PingFang SC',sans-serif;font-size:10px;letter-spacing:1.6px;color:var(--quiet-ink)}
+.topic-search{min-height:42px;border-color:var(--panel-line)}
+.topic-search input{font-size:14px}
+.topic-search input::placeholder{color:#92a8bb}
+.topic-filters button{font-size:14px;color:var(--quiet-ink)}
+.list-caption{font-size:13px;color:var(--support-ink)}
+.list-caption span{font-size:11px;color:var(--quiet-ink)}
+.topic-row{gap:12px;padding-block:20px}
+.topic-copy strong{font-size:15px;line-height:1.75;color:#c6d5e2}
+.topic-copy small{font-size:12px;line-height:1.75;color:#94aec3}
+.topic-number{font-size:14px;line-height:26px;color:#8aa2b8}
+.sidebar-bottom small{font-size:12px;line-height:1.7;color:#8fa8bd}
+.sidebar-bottom b{font-size:12px}
+#topic-list{scrollbar-color:#7f9ab04a transparent}
+.topbar{gap:20px}
+.search{min-height:40px}
+.search input{font-size:14px;width:120px}
+#profile{font-size:13px;min-height:40px;padding-inline:15px}
+body>#profile{top:21px;height:40px}
+body[data-view="world"] .topbar .top-right{margin-right:122px}
+#world-context{max-width:850px;display:grid;grid-template-columns:max-content max-content minmax(0,1fr);column-gap:18px;align-items:center}
+#world-context .eyebrow{font-size:12px;letter-spacing:1px;color:var(--support-ink)}
+#world-context>.eyebrow,#world-context>h1,#world-context>#topic-description{grid-column:1 / -1}
+#world-context h1{font-size:24px;line-height:1.55;letter-spacing:.3px;max-width:none;margin:9px 0 10px;text-wrap:pretty}
+#world-context #topic-description{font-size:15px;line-height:1.8;color:var(--support-ink);max-width:none;margin-bottom:8px}
+#world-context #world-mode{display:none}
+#topic-rules{font-size:13px;padding:9px 0;min-height:38px}
+#world-context #open-advice{grid-column:2;font-size:13px;line-height:1.5;min-height:38px;margin:0;padding:8px 13px}
+#compose{font-size:14px;min-height:46px;padding:12px 22px}
+#start-agents{min-height:46px;padding:11px 15px}
+#start-agents span{font-size:14px}
+#resume-discussion{font-size:13px;min-height:38px;padding:8px 0}
+#case-bar{max-width:calc(100% - 280px);gap:12px}
+#case-bar button{font-size:13px;line-height:1.5;min-height:40px;padding:9px 13px}
+#case-mode{font-size:12px;line-height:1.7;max-width:170px;color:#9eb3c6}
+.map-controls{gap:3px;padding:5px}
+.map-controls button{width:36px;height:36px}
+.map-controls #zoom-value{font-size:12px;min-width:40px}
+#hint{font-size:13px;color:var(--support-ink)}
+.node .node-label{font-size:14px;line-height:1.6;text-shadow:0 2px 8px #03060b;max-width:190px;white-space:normal;text-align:center;width:max-content}
+.entry-label{font-size:14px;letter-spacing:1px}
+#knowledge-form label{font-size:14px}
+#knowledge{font-size:16px;line-height:1.85}
+.entry-note{font-size:12px;line-height:1.7;color:#95acbf}
+.entry-bottom .text-button{font-size:13px}
+.enter-button{font-size:14px;min-height:44px}
+#relation-card{max-width:calc(100% - 48px);border-color:var(--panel-line)}
+#relation-card p{font-size:15px;line-height:1.8;color:var(--reading-ink)}
+#relation-choices button{font-size:14px;line-height:1.6;white-space:normal}
+#relation-choices button[data-confirm-relation="unrelated"]{font-size:13px}
+.relation-actions .text-button{font-size:13px}
+#pair-name{font-size:13px;line-height:1.6}
+#pair-status small,#pair-status button{font-size:12px}
+
+/* Preview cards and the expanded source share one typographic scale. */
+#hover-card{aspect-ratio:9/16;min-height:0;height:auto;max-height:none;padding:18px 21px 15px;border-radius:18px;background:#101b28fc;box-shadow:0 22px 80px #0008}
+#hover-card h2{font-size:17px;line-height:1.6;margin:12px 0}
+.answer-brand>#answer-source{font-size:12px;color:#9fb7c9;letter-spacing:.3px}
+.answer-brand button{min-width:32px;min-height:32px}
+.answer-person{padding-bottom:13px}
+.answer-person strong{font-size:14px;font-weight:500}
+.answer-person small{font-size:12px;color:#97aec2}
+#hover-card .answer-reading{font-size:16px;line-height:1.9;min-height:100px;padding-top:13px;color:var(--reading-ink)}
+.answer-meta{gap:8px;padding-top:11px;align-items:baseline}
+.answer-meta span{font-size:12px;line-height:1.6;color:#97afc2}
+.answer-meta a{font-size:13px}
+.answer-navigation{padding-block:5px}
+.answer-navigation button{min-height:38px;min-width:40px}
+.answer-navigation span{font-size:13px;color:#a5bfd2}
+.answer-actions{margin-top:7px;gap:12px}
+.answer-actions button{font-size:13px;min-height:40px;line-height:1.6}
+.answer-actions #hover-debate{padding:9px 12px}
+#detail[open]{width:min(550px,calc(100vw - 36px));height:min(80dvh,810px);max-height:calc(100dvh - 40px);min-height:0;padding:23px 26px 21px;border:1px solid var(--panel-line);border-radius:22px;background:#0f1a28fc;box-shadow:0 24px 95px #0008;isolation:isolate}
+#detail[data-presentation="anchored"][open]{inset:auto;left:var(--detail-left);top:var(--detail-top);width:var(--detail-width,min(550px,calc(100vw - 36px)));height:var(--detail-height,min(80dvh,810px));margin:0;transform:none;transform-origin:var(--detail-origin,50% 50%)}
+#detail::backdrop{background:#01050a4d;backdrop-filter:blur(1px)}
+#detail .dialog-top{min-height:38px;gap:12px}
+#detail .detail-orbit{display:block;flex:none;width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 31% 27%,#e2f5ffaf,transparent 20%),radial-gradient(circle at 38% 35%,var(--planet-color,#abc9df),#2b435b 48%,#08111f 78%);box-shadow:inset 1px 1px 2px #e5f4ff55,0 0 15px #b8d5ea18}
+#detail .dialog-top .eyebrow{margin-right:auto}
+#detail-title{font-family:'Songti SC','STSong',serif;font-size:24px;line-height:1.55;letter-spacing:.2px;margin:13px 0 16px}
+.detail-author-row{font-size:14px;gap:10px;min-height:32px}
+.detail-author-row strong{min-width:0;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.detail-author-row a{font-size:13px}
+#detail-meta{font-size:12px;line-height:1.6;color:#98b1c6;margin:9px 0 10px}
+#detail-body{font-size:16px;line-height:1.95;color:var(--reading-ink);padding-right:9px;margin:16px 0;scrollbar-width:thin;scrollbar-color:#809aaf55 transparent}
+#detail .detail-actions{gap:8px 18px;margin:3px 0 0}
+#detail .detail-actions button{font-size:13px;min-height:36px;line-height:1.6}
+#detail #approach{font-size:14px;min-height:43px;margin-top:12px}
+#detail #relation-settings{font-size:13px;margin:5px 0;padding:7px 0}
+#detail #relation-settings legend{font-size:13px;color:var(--support-ink)}
+.relation-options button{font-size:13px;min-height:36px}
+#edit-knowledge{font-size:14px;min-height:40px;margin-top:10px}
+
+/* A small dock leaves the actual planets available for participant selection. */
+#agent-picker[data-spatial="true"][open]{position:fixed;left:calc(var(--rail) + (100vw - var(--rail))/2);right:auto;top:auto;bottom:20px;transform:translateX(-50%);margin:0;width:min(620px,calc(100vw - var(--rail) - 40px));height:auto;min-height:0;max-height:45dvh;padding:17px 22px 19px;border:1px solid #b9d5ed40;border-radius:20px;background:#0e1a28f5;backdrop-filter:blur(24px);box-shadow:0 18px 70px #0007;overflow:auto;z-index:29}
+#agent-picker[data-spatial="true"] h1{font-family:'Songti SC','STSong',serif;font-size:22px;line-height:1.5;margin:4px 0 8px}
+#agent-picker[data-spatial="true"] p{font-size:13px;line-height:1.7;color:#a3bbce;margin:4px 0 12px}
+#agent-picker[data-spatial="true"] .dialog-top{min-height:30px}
+#agent-picker[data-spatial="true"] .close{height:30px;width:32px}
+#agent-picker[data-spatial="true"] #agent-form{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px}
+#agent-selection-stage{width:100%;display:grid;grid-template-columns:minmax(0,1fr) 34px minmax(0,1fr);align-items:center;gap:10px;margin:5px 0 10px}
+.selection-planet{min-width:0;display:grid;grid-template-columns:38px minmax(0,1fr);align-items:center;gap:2px 12px;padding:12px;text-align:left;border:1px solid #b7d3e522;border-radius:13px;background:#bfd7ef04;color:#bfd3e3;transition:border-color .2s,background .2s}
+.selection-planet:hover,.selection-planet[aria-pressed="true"],.selection-planet[data-active="true"]{border-color:#b7d3e573;background:#bed8ef0c}
+.selection-planet-orb{display:block;grid-column:1;grid-row:1 / 3;width:38px;height:38px;border-radius:50%;background:radial-gradient(circle at 32% 25%,#e4f5ff9e,transparent 20%),radial-gradient(circle at 35% 30%,var(--planet-color,#9cb6ce),#304d66 45%,#071221 78%);box-shadow:inset 1px 1px 2px #dceeff4d,0 0 17px #b6d3e012}
+.selection-planet[data-empty="true"] .selection-planet-orb{background:none;border:1px dashed #abc8dc6b;box-shadow:none}
+.selection-planet-name{display:block;grid-column:2;min-width:0;font-size:14px;line-height:1.7;overflow:hidden;text-overflow:ellipsis;max-height:3.4em}
+.selection-planet>small{grid-column:2}
+.selection-planet-name small,.selection-planet small{display:block;color:#90aac0;font-size:12px;line-height:1.6}
+.selection-stage-link{text-align:center;color:#91acc1;font-size:18px;font-weight:300}
+#agent-picker[data-spatial="true"] #picker-status{flex:1 1 260px;font-size:12px;line-height:1.7;margin:0;color:#a1b9cc}
+#agent-picker[data-spatial="true"] #begin-agents{margin:0 0 0 auto;width:auto;font-size:14px;min-height:42px;padding:10px 17px;white-space:nowrap}
+#agent-picker[data-spatial="true"] details{font-size:13px;color:#a2bbce;flex:1 1 auto}
+#agent-picker[data-spatial="true"] summary{cursor:pointer;padding:8px 0;min-height:36px}
+#agent-picker[data-spatial="true"] details label{font-size:13px;margin:5px 0}
+#agent-picker[data-spatial="true"] details select{font-size:14px;padding:10px;max-width:280px}
+.node[data-picked="true"]{outline:1px solid #c8e5f69c;outline-offset:8px}
+.node[data-picked="true"]:after{content:attr(data-pick-slot);position:absolute;top:-13px;right:-10px;display:grid;place-items:center;width:27px;height:27px;border:1px solid #b9d9eb55;border-radius:50%;background:#122536e8;color:#d3e7f2;font-size:12px;text-transform:uppercase;box-shadow:0 4px 20px #0005}
+body:has(#agent-picker[data-spatial="true"][open]) #compose,
+body:has(#agent-picker[data-spatial="true"][open]) #start-agents,
+body:has(#agent-picker[data-spatial="true"][open]) #case-bar,
+body:has(#agent-picker[data-spatial="true"][open]) .map-controls,
+body:has(#agent-picker[data-spatial="true"][open]) #pair-status,
+body:has(#agent-picker[data-spatial="true"][open]) #egg-trigger,
+body:has(#agent-picker[data-spatial="true"][open]) .sound-controls{visibility:hidden;pointer-events:none}
+
+/* Discussion and source provenance remain comfortable to read. */
+#discussion-source,#agent-status,#scenario-details,.live-mode-label{font-size:13px;line-height:1.7;color:#a1bbce}
+#discussion-mode{font-size:14px;min-height:40px}
+.message p,#transcript-body p,.summary-block p{font-size:16px;line-height:1.85;color:var(--reading-ink)}
+.message-source{font-size:13px;line-height:1.7}
+.turn-actions .text-button,#scenario-prompts button{font-size:13px;min-height:36px;line-height:1.6}
+#interrupt-text,#record-common,#record-note,#export-note{font-size:16px;line-height:1.8}
+#record-change,#interrupt-form label,#discussion-summary label{font-size:14px}
+#case-info p,#records-dialog p,#export-dialog p,#egg-dialog p{font-size:16px;line-height:1.85;color:var(--reading-ink)}
+#case-info h2{font-size:16px}
+#case-info a,.record-actions button,#undo-delete,.export-actions .text-button{font-size:14px;line-height:1.7}
+#case-info .session-note,.session-note,.record-item small{font-size:13px;line-height:1.7;color:#9eb6ca}
+.case-facts{font-size:14px;line-height:1.7}
+
+@media(min-width:901px) and (max-width:1100px){
+  body{--rail:244px}
+  .sidebar-head{padding:25px 20px 0}
+  .sidebar-brand{font-size:21px}
+  .sidebar-intro{margin:22px 20px 15px;font-size:13px}
+  .topic-search{margin:0 16px 18px;padding-inline:10px}
+  .topic-filters{padding-inline:17px}
+  .topic-filters button{font-size:13px}
+  .list-caption{margin:19px 20px 7px;font-size:12px}
+  .list-caption span{font-size:10px}
+  .topic-row{padding:17px 17px;gap:10px}
+  .topic-row:after{left:45px;right:17px}
+  .topic-copy strong{font-size:14px}
+  .sidebar-bottom{padding:14px 16px 18px}
+  .sidebar-bottom small{font-size:11px}
+  .topbar{padding-inline:24px}
+  #world-context{left:26px;right:26px}
+  #case-bar{left:26px;max-width:calc(100% - 285px)}
+  #case-mode{display:none}
+}
+@media(min-width:701px) and (max-width:1200px){
+  #compose{right:25px;left:auto;transform:none}
+  #case-bar{max-width:calc(100% - 285px)}
+  #case-mode{display:none}
+  #resume-discussion{top:auto;bottom:155px;right:27px}
+}
+@media(max-width:900px){
+  #open-topics{font-size:14px;min-height:40px}
+  .topbar{gap:12px;padding-top:17px}
+  .search input{width:110px}
+  #world-context{top:97px}
+  #world-context h1{font-size:24px}
+  #world-context #topic-description{font-size:15px}
+}
+@media(max-width:700px){
+  .topbar{padding:16px 19px;gap:8px;min-height:73px}
+  body>#profile{top:17px;right:18px;font-size:12px;padding-inline:13px;min-height:38px;height:38px}
+  body[data-view="world"] .topbar .top-right{margin-right:104px}
+  .search{gap:6px;min-height:38px;padding:5px 9px}
+  .search input{font-size:14px;width:92px}
+  #open-topics{font-size:13px}
+  #world-context{left:22px;right:22px;top:92px}
+  #world-context h1{font-size:22px;line-height:1.6}
+  #world-context #topic-description{font-size:14px;line-height:1.8}
+  #world-context .eyebrow{font-size:12px}
+  #topic-rules{font-size:13px;padding-block:7px}
+  #compose{right:20px;left:auto;transform:none;bottom:122px;font-size:14px;padding:12px 16px;min-height:46px}
+  #start-agents{left:20px;bottom:122px;padding:10px 12px}
+  #start-agents span{font-size:13px}
+  #case-bar{left:20px;right:20px;bottom:72px!important;max-width:none;gap:8px}
+  #case-bar button{font-size:12px;padding:8px 12px;min-height:37px}
+  #case-mode{display:none}
+  .map-controls{right:18px;bottom:15px;padding:3px;gap:1px}
+  .map-controls button{width:32px;height:32px}
+  .map-controls #zoom-value{font-size:11px;min-width:34px}
+  .map-controls .divider{margin-inline:3px}
+  body[data-view="world"] .sound-controls{left:20px;right:auto;bottom:14px;gap:7px}
+  body[data-view="world"] .sound-controls button{font-size:13px}
+  body[data-view="world"] #sound-settings{min-width:29px;padding-left:8px}
+  .node .node-label{font-size:13px;max-width:145px}
+  #hover-card{padding:16px 18px 13px;height:auto;border-radius:17px}
+  #hover-card h2{font-size:17px;margin:11px 0}
+  #hover-card .answer-reading{font-size:16px}
+  .answer-person strong{font-size:14px}
+  .answer-person small{font-size:12px}
+  .answer-meta span{font-size:11px}
+  .answer-meta a{font-size:12px}
+  #detail[open]{padding:18px 21px 17px;height:min(79dvh,790px);max-height:calc(100dvh - 28px);border-radius:20px}
+  #detail-title{font-size:21px;line-height:1.55;margin:10px 0 13px}
+  #detail-body{font-size:16px;line-height:1.9;margin:13px 0}
+  .detail-author-row{font-size:14px;gap:8px}
+  .detail-author-row strong{max-width:44%}
+  .detail-author-row a{font-size:12px}
+  #detail .detail-actions{gap:4px 14px}
+  #detail .detail-actions button{font-size:12px}
+  #detail #approach{margin-top:8px;min-height:42px}
+  #agent-picker[data-spatial="true"][open]{left:14px;right:14px;bottom:14px;transform:none;width:auto;padding:14px 17px 16px;max-height:45dvh;border-radius:19px}
+  #agent-picker[data-spatial="true"] h1{font-size:21px;margin:3px 0 7px}
+  #agent-picker[data-spatial="true"] p{font-size:13px;margin-bottom:8px}
+  #agent-selection-stage{gap:7px;grid-template-columns:minmax(0,1fr) 18px minmax(0,1fr);margin:3px 0 6px}
+  .selection-planet{grid-template-columns:31px minmax(0,1fr);gap:2px 9px;padding:9px}
+  .selection-planet-orb{width:31px;height:31px}
+  .selection-planet-name{font-size:13px}
+  .selection-planet-name small,.selection-planet small{font-size:11px}
+  #agent-picker[data-spatial="true"] #picker-status{font-size:12px;flex-basis:100%}
+  #agent-picker[data-spatial="true"] #begin-agents{font-size:13px;min-height:40px;padding-inline:14px}
+  #relation-card,#relation-card[data-kind="unknown"],#app[data-paired="true"] #relation-card{bottom:112px;max-height:min(36dvh,270px);padding:14px 16px}
+  #relation-card p{font-size:14px;line-height:1.8;-webkit-line-clamp:3}
+  #relation-card h2{font-size:17px;line-height:1.6}
+  #relation-choices button{font-size:13px;padding:10px 8px;white-space:normal}
+  #relation-choices button[data-confirm-relation="unrelated"]{font-size:12px}
+  #relation-card[data-kind="unknown"] #relation-edit{font-size:12px}
+  #app[data-paired="true"] #pair-status{top:82px;bottom:auto}
+  #app[data-paired="true"] #world-context{top:151px}
+  #pair-name{font-size:12px}
+  #discussion{padding:17px 20px;height:76dvh}
+  #discussion h1{font-size:21px;line-height:1.5}
+  #discussion .discussion-sub{font-size:13px}
+  .discussion-step{font-size:11px}
+  .message p,#transcript-body p,.summary-block p{font-size:16px;line-height:1.85}
+  #interrupt-text{font-size:16px;max-height:74px}
+  #case-info,#records-dialog,#export-dialog{padding:24px}
+  .case-facts{grid-template-columns:1fr;gap:10px}
+  #app[data-composing="true"] #entry{bottom:70px}
+  body[data-view="world"]:has(#app[data-composing="true"]) .sound-controls{bottom:14px}
+}
+@media(max-width:390px){
+  .topbar{padding-inline:15px}
+  .search input{width:64px}
+  .search>span{font-size:21px}
+  #world-context h1{font-size:21px}
+  #compose{right:16px;padding-inline:13px;font-size:13px}
+  #start-agents{left:16px;padding-inline:10px}
+  #start-agents span{font-size:12px}
+  .map-controls{right:15px}
+  .map-controls button{width:29px}
+  body[data-view="world"] .sound-controls{left:16px;gap:4px}
+  body[data-view="world"] .sound-controls button{font-size:13px}
+  .selection-planet{grid-template-columns:25px minmax(0,1fr);gap:2px 6px;padding:8px}
+  .selection-planet-orb{width:25px;height:25px}
+}
+@media(max-height:650px){
+  #hover-card{padding:14px 17px 12px}
+  #hover-card h2{font-size:16px;line-height:1.5;margin:9px 0}
+  #hover-card .answer-person{padding-bottom:9px}
+  #hover-card .answer-person img,#hover-card #avatar-fallback{width:30px;height:30px}
+  #hover-card .answer-person strong{line-height:1.4}
+  #hover-card .answer-reading{padding-top:10px}
+  #hover-card .answer-meta{padding-top:8px}
+  #hover-card .answer-navigation{padding-block:2px}
+  #hover-card .answer-navigation button{min-height:32px;padding-block:3px}
+  #hover-card .answer-actions{margin-top:4px}
+  #hover-card .answer-actions button{min-height:36px;padding-block:7px}
+  #detail[open]{padding:16px 21px;max-height:calc(100dvh - 24px)}
+  #detail-title{font-size:19px;line-height:1.45;margin:8px 0 10px}
+  #detail-meta{margin-block:5px}
+  #detail-body{margin:10px 0}
+  #detail .detail-actions button{min-height:30px}
+  #detail #approach{min-height:37px;margin-top:6px}
+  #agent-picker[data-spatial="true"][open]{max-height:45dvh;padding:12px 17px}
+  #agent-picker[data-spatial="true"] h1{font-size:18px}
+  #agent-picker[data-spatial="true"]>p{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+  .selection-planet,#detail,.node[data-picked="true"]{animation:none!important;transition:none!important}
+}
+
+/* Additional analysis and relationship controls must never squeeze out the source. */
+#detail[open]{overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#809aaf55 transparent;scrollbar-gutter:stable}
+#detail[open]>:not(#detail-body){flex-shrink:0}
+#detail[open]>#detail-body{flex:1 0 140px;min-height:140px;overflow:auto;overscroll-behavior:contain}
+#detail #detail-insight{flex:0 0 auto;min-height:0;max-height:min(32dvh,220px);margin:6px 0 0;padding:0 12px 12px;overflow:auto}
+#detail #detail-insight:not([open]){max-height:none;margin:6px 0 0;padding:0 12px;overflow:visible}
+#detail #detail-insight>summary{font-size:13px;line-height:1.6;padding:9px 0;cursor:pointer;color:#bddbea}
+#detail #detail-insight[open]>summary{margin-bottom:3px}

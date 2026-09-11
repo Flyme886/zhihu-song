@@ -5,7 +5,7 @@ export function demoTurn(speaker, opponent, turn, additions=[], topic=null) {
   if(speaker.sourceKind==='editorial')return caseTurn(speaker,opponent,turn,additions);
   if(turn<2)return `我从这颗星球的材料出发，关注的是：${stance}\n\n${speaker.question || '这一判断适用于哪些条件？'}`;
   const condition=additions.length?`你补充的「${additions.at(-1)}」也需要纳入条件。` : '';
-  if(turn<4)return `回应另一颗星球提出的「${opponent.question || '这一判断适用于哪些条件？'}」：仅凭目前摘录，还不能给出确定答案。${condition}\n\n从我的关注点出发，${speaker.question || '有哪些材料能检验这个判断？'}`;
+  if(turn<4)return `回应另一颗星球提出的「${opponent.question || '这一判断适用于哪些条件？'}」：仅凭目前原回答，还不能给出确定答案。${condition}\n\n从我的关注点出发，${speaker.question || '有哪些材料能检验这个判断？'}`;
   return `保留我的关注点：${stance}\n\n我们可以把「${opponent.question || '判断适用的条件'}」列为下一步要核实的问题。${condition}这些材料不要求我们持相反立场；目前也不宜替原答主作出新的事实结论。`;
 }
 export function participantsValid(a,b){return Boolean(a && b && a.id!==b.id);}
@@ -30,7 +30,7 @@ function caseTurn(speaker,opponent,turn,additions){
 
 function topicTurn(speaker,opponent,turn,additions,topic){
  const stance=speaker.claim||speaker.body,condition=additions.at(-1);
- const frame=speaker.sourceKind==='zhihu'?'基于这份摘要，我先保留材料的关切，不代表原答主本人。':'这是一次明确标注的本地演练。';
+ const frame=speaker.sourceKind==='zhihu'?'基于这份原回答，我先保留材料的关切，不代表原答主本人。':'这是一次明确标注的本地演练。';
  if(turn<2)return `${frame}\n\n${stance}\n\n我想追问：${speaker.question||topic.scenarios[0].text}`;
  const response=speaker.response||`目前材料不能替我确定答案。我仍关注：${speaker.question||topic.description}`;
  return `回应「${opponent.question||'这个判断适用于什么条件？'}」：${response}\n\n${condition?`针对主持人的「${condition}」，需要重新检查这个条件怎样影响${speaker.title}。${topic.scenarios.find(s=>s.text===condition)?.response||'保留原题规则，分别比较条件改变前后的选择，不把新增假设当成事实。'}`:'还可以比较：'+topic.scenarios[(turn-2)%3].text}${turn>=4?'\n\n是否调整判断，留给你确认；我们没有要求双方必须同意。':''}`;

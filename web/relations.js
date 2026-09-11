@@ -15,6 +15,22 @@ export function nearestRelated(me, nodes, partner, classify, limit = 100) {
     .sort((a, b) => a.gap - b.gap)[0]?.node || null;
 }
 
+// Unknown neighbors need an explicit choice before attraction or repulsion can act.
+export function nearestUnconfirmed(me, nodes, classify, limit = 100) {
+  return nodes.filter(n => n !== me && classify(n) === 'unknown')
+    .map(node => ({node, gap: gap(me, node)}))
+    .filter(item => item.gap < limit)
+    .sort((a, b) => a.gap - b.gap)[0]?.node || null;
+}
+
+export function nearestEncounter(me, nodes, partner, classify, limit = 100) {
+  const related = nearestRelated(me, nodes, partner, classify, limit);
+  const unknown = nearestUnconfirmed(me, nodes, classify, limit);
+  if (!related) return unknown;
+  if (!unknown) return related;
+  return gap(me, unknown) < gap(me, related) ? unknown : related;
+}
+
 export function followPair(leader, follower, offset, dt, velocity) {
   // A critically damped spring; clamp dt after tab suspension.
   const h = Math.min(dt, .04), omega = 9;

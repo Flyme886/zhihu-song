@@ -1,9 +1,10 @@
+import {summaryMarkdown} from './thought-client.js';
 export const STORAGE_KEY='gravity.sessions.v1';
-const nodeFields=['id','topicId','title','author','body','claim','question','response','sourceKind','source','url','context','bio','avatar','captured','questionTitle','color','exampleRelation'];
-export function snapshotNode(node){return Object.fromEntries(nodeFields.filter(k=>node[k]!==undefined).map(k=>[k,node[k]]));}
+const nodeFields=['id','topicId','title','author','body','claim','question','response','sourceKind','source','url','context','bio','avatar','captured','questionTitle','color','exampleRelation','answerId','retrieval','contentHtml','contentStatus','publishedText','editedText','capturedAt','analysis','originalTitle','originalClaim'];
+export function snapshotNode(node){return structuredClone(Object.fromEntries(nodeFields.filter(k=>node[k]!==undefined).map(k=>[k,node[k]])));}
 export function snapshotDiscussion(d,note='',change='keep',common=''){
   if(!d)return null;
-  return {id:d.id,source:snapshotNode(d.source),target:snapshotNode(d.target),mode:d.mode,turn:d.turn,additions:[...d.additions],messages:d.messages.map(m=>({...m})),finished:!!d.finished,note,change,common};
+  return {id:d.id,source:snapshotNode(d.source),target:snapshotNode(d.target),companion:d.companion?snapshotNode(d.companion):null,summary:d.summary?structuredClone(d.summary):null,mode:d.mode,turn:d.turn,additions:[...d.additions],messages:d.messages.map(m=>({...m})),finished:!!d.finished,note,change,common};
 }
 export class SessionStore{
   constructor(storage,onFailure=()=>{}){
@@ -41,5 +42,5 @@ export class LatestRequest{
 export function eggAvailable(topic,event){return Boolean(topic.egg&&topic.egg.event===event);}
 export function recordMarkdown(record){
   const labels={keep:'保留原判断',supplement:'补充原判断',changed:'改变原判断'};
-  return `# ${record.topicTitle}\n\n${record.savedAt||'时间未记录'}\n\n## 我现在的想法\n\n${record.note||'未填写'}\n\n${labels[record.change]||labels.keep}\n\n## 我确认的共同点\n\n${record.common||'尚未确认'}\n\n## 来源快照\n\n`+[record.source,record.target].map(n=>`${n.author} · ${n.source}\n\n${n.body}\n\n${n.url||'案例策划或个人输入'}\n\n${n.context||''}`).join('\n\n')+`\n\n## 讨论全文\n\n`+record.messages.map(m=>`**${m.who}**\n\n${m.text}`).join('\n\n')+'\n\nAgent 发言是基于材料的延展，不代表原答主本人。\n';
+  return `# ${record.topicTitle}\n\n${record.savedAt||'时间未记录'}\n\n## 我现在的想法\n\n${record.note||'未填写'}\n\n${labels[record.change]||labels.keep}\n\n## 我确认的共同点\n\n${record.common||'尚未确认'}\n\n## 来源快照\n\n`+[record.source,record.companion,record.target].filter(Boolean).map(n=>`${n.author} · ${n.source}\n\n${n.body}\n\n${n.url||'案例策划或个人输入'}\n\n${n.context||''}`).join('\n\n')+`\n\n## 讨论全文\n\n`+record.messages.map(m=>`**${m.who}**\n\n${m.text}`).join('\n\n')+summaryMarkdown(record.summary)+'\n\nAgent 发言是基于材料的延展，不代表原答主本人。\n';
 }

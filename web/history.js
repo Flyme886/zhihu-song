@@ -8,7 +8,7 @@ export function buildHistory(data,catalog){
  for(const [topicId,state] of Object.entries(data.topics)){
   const topic=topics.get(topicId),title=topic?.title||state.title||state.records?.[0]?.topicTitle||topicId;
   const versions=state.opinions||[];
-  const captured=[...(state.sources||[]),...(state.records||[]).flatMap(r=>[r.source,r.target].filter(Boolean))];const sources=captured.filter((n,i)=>captured.findIndex(v=>v.id===n.id&&v.body===n.body)===i);
+  const captured=[...(state.sources||[]),...(state.records||[]).flatMap(r=>[r.source,r.companion,r.target].filter(Boolean))];const sources=captured.filter((n,i)=>captured.findIndex(v=>v.id===n.id&&v.body===n.body)===i);
   versions.forEach((item,i)=>opinions.push({...item,kind:'opinions',topicId,topicTitle:title,title:i?'后来，我这样想':'最初的想法',version:i+1,previous:versions[i-1]?.text||'',body:item.text,date:item.createdAt}));
   (state.records||[]).forEach(item=>records.push({...item,kind:'records',topicId,topicTitle:item.topicTitle||title,title:item.note||'一次留下来的对话',body:item.note||'',date:item.savedAt}));
   if(versions.length||state.records?.length||state.visitedAt||state.read?.length||state.discussion){

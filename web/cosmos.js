@@ -1,4 +1,5 @@
 import * as THREE from './vendor/three/three.module.js';
+import {createParticleNode,updateParticleNode} from './world-particles.js';
 
 const clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
 const smooth=x=>{x=clamp(x);return x*x*(3-2*x);};
@@ -8,9 +9,39 @@ float noise(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(mi
 float fbm(vec3 p){float f=0.,a=.5;for(int i=0;i<5;i++){f+=a*noise(p);p=p*2.03+vec3(5.2,1.3,7.1);a*=.49;}return f;}`;
 const sphereVertex=`varying vec3 vNormal,vPos,vWorld;void main(){vNormal=normalize(normalMatrix*normal);vPos=position;vWorld=(modelMatrix*vec4(position,1.)).xyz;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`;
 const sphereFragment=`precision highp float;uniform float time;varying vec3 vNormal,vPos,vWorld;${noise}
-void main(){vec3 p=normalize(vPos);float n=fbm(p*5.+vec3(time*.013,0.,0.));float clouds=fbm(p*13.+n*3.);float bands=fbm(p*vec3(3.,12.,3.)+n*2.);vec3 cold=vec3(.08,.14,.22);vec3 warm=vec3(.60,.42,.20);vec3 col=mix(cold,warm,smoothstep(.36,.69,n));col=mix(col,vec3(.42,.48,.52),smoothstep(.54,.78,clouds)*.75);col*=.55+bands*.9;float lighting=max(dot(p,normalize(vec3(-.6,.65,.85))),0.);col*=pow(lighting,.6)*1.1+.035;float rim=pow(1.-abs(vNormal.z),4.);col+=vec3(.31,.60,1.)*rim*(.15+lighting)*.6;gl_FragColor=vec4(col,1.);}`;
-const ringFragment=`precision highp float;uniform float time,alpha;varying vec2 vUv;${noise}
-void main(){float r=vUv.x;float grain=noise(vec3(vUv.x*1500.,vUv.y*1800.,time*.08));float bands=.45+.30*sin(r*620.)+.15*sin(r*1770.);float edges=smoothstep(0.,.07,r)*(1.-smoothstep(.84,1.,r));float core=exp(-pow((r-.22)*24.,2.));float gap=1.-.88*exp(-pow((r-.43)*110.,2.));vec3 col=mix(vec3(.8,.19,.045),vec3(.74,.88,1.),smoothstep(.08,.40,r));col=mix(col,vec3(1.,.88,.7),core*.8);float a=edges*(.15+grain*.6+bands*.3)*gap*alpha;gl_FragColor=vec4(col*(.6+core*1.8),a);}`;
+void main(){
+ vec3 p=normalize(vPos),normal=normalize(vNormal),light=normalize(vec3(-.65,.58,.78));
+ float n=fbm(p*4.3+vec3(time*.008,0.,0.));
+ float clouds=fbm(p*10.+n*2.4),bands=fbm(p*vec3(2.6,10.,2.6)+n*1.7);
+ vec3 col=mix(vec3(.075,.135,.215),vec3(.40,.36,.28),smoothstep(.35,.70,n));
+ col=mix(col,vec3(.38,.46,.54),smoothstep(.52,.77,clouds)*.62);
+ col*=.72+bands*.48;
+ float incidence=dot(normal,light),day=smoothstep(-.12,.62,incidence);
+ col*=.025+day*.97;
+ float sheen=pow(max(dot(normal,normalize(light+vec3(0.,0.,1.))),0.),20.)*.055*day;
+ col+=vec3(.62,.77,.88)*sheen;
+ float rim=pow(1.-max(normal.z,0.),5.5);
+ col+=vec3(.22,.48,.78)*rim*(.04+.32*day);
+ gl_FragColor=vec4(col,1.);
+}`;
+// Bands are filtered in screen space. High-frequency opacity noise made the old
+// ring sparkle as coarse, evenly spread grains even while the scene was still.
+const ringFragment=`precision highp float;uniform float time,alpha;varying vec2 vUv;
+void main(){
+ float r=vUv.x,theta=vUv.y*6.2831853;
+ float edge=smoothstep(0.,.045,r)*(1.-smoothstep(.90,1.,r));
+ float inner=exp(-pow((r-.14)*16.,2.)),middle=exp(-pow((r-.53)*5.5,2.));
+ float gap=1.-.90*exp(-pow((r-.34)*75.,2.));
+ float spacing=190.,bandFilter=1.-smoothstep(.45,1.7,fwidth(r)*spacing);
+ float filaments=.5+.5*sin(r*spacing+sin(r*37.)*.7);
+ float fine=.5+.5*sin(r*420.);fine=mix(.5,fine,1.-smoothstep(.4,1.4,fwidth(r)*420.));
+ float arc=.64+.20*cos(theta-.55)+.10*sin(theta*3.+r*8.);
+ float wisps=.87+.13*sin(theta*5.+r*14.+time*.015);
+ float density=(.10+inner*.35+middle*.14+filaments*bandFilter*.10+fine*.025)*gap;
+ vec3 col=mix(vec3(.43,.62,.83),vec3(.72,.83,.92),inner*.5+middle*.25);
+ col=mix(col,vec3(.88,.74,.55),inner*.54);
+ gl_FragColor=vec4(col,edge*density*arc*wisps*alpha);
+}`;
 function random(seed=5931){return()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};}
 function makeRing(inner,outer,opacity=1){
  const geo=new THREE.RingGeometry(inner,outer,256,8);const pos=geo.attributes.position,uv=geo.attributes.uv;
@@ -25,6 +56,17 @@ function makeStars(count,spread,seed){
  const material=new THREE.ShaderMaterial({uniforms:{dpr:{value:1},alpha:{value:1}},vertexShader:'attribute vec3 color;attribute float size;varying vec3 c;uniform float dpr;void main(){c=color;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);gl_PointSize=size*dpr;}',fragmentShader:'varying vec3 c;uniform float alpha;void main(){float d=length(gl_PointCoord-.5);gl_FragColor=vec4(c,alpha*(1.-smoothstep(.12,.5,d)));}',transparent:true,depthWrite:false,blending:THREE.AdditiveBlending});return new THREE.Points(geometry,material);
 }
 
+export function surfaceLandmarkTargets(width,height,widths=[]){
+ const mobile=width<=700;
+ return [0,1,2].map(i=>{
+  const margin=(widths[i]||(mobile?120:190))/2+20;
+  const x=clamp(width*[mobile?.19:.24,.5,mobile?.81:.76][i],margin,width-margin);
+  // Keep the full label above the history navigation in short viewports.
+  const y=Math.min(height*(mobile?(i===1?.525:.555):(i===1?.555:.59)),height-(mobile?360:250));
+  return {x,y:Math.max(height*.525,y)};
+ });
+}
+
 export class CosmosRenderer {
  constructor(canvas){
   this.canvas=canvas;this.renderer=new THREE.WebGLRenderer({canvas,antialias:false,alpha:true,powerPreference:'high-performance'});this.renderer.setClearColor(0x020408,1);this.renderer.outputColorSpace=THREE.SRGBColorSpace;
@@ -34,7 +76,7 @@ export class CosmosRenderer {
   this.planet=new THREE.Group();this.scene.add(this.planet);
   this.globe=new THREE.Mesh(new THREE.SphereGeometry(1.55,96,64),new THREE.ShaderMaterial({uniforms:{time:{value:0}},vertexShader:sphereVertex,fragmentShader:sphereFragment}));this.planet.add(this.globe);
   this.ring=makeRing(1.9,4.4,.78);this.ring.rotation.set(1.14,.18,-.38);this.planet.add(this.ring);
-  const atmosphere=new THREE.Mesh(new THREE.SphereGeometry(1.59,64,48),new THREE.ShaderMaterial({vertexShader:sphereVertex,fragmentShader:'varying vec3 vNormal;void main(){float a=pow(1.-abs(vNormal.z),4.5)*.28;gl_FragColor=vec4(.32,.64,1.,a);}',transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));this.planet.add(atmosphere);
+  const atmosphere=new THREE.Mesh(new THREE.SphereGeometry(1.59,64,48),new THREE.ShaderMaterial({vertexShader:sphereVertex,fragmentShader:'varying vec3 vNormal;void main(){vec3 n=normalize(vNormal);float day=smoothstep(-.2,.65,dot(n,normalize(vec3(-.65,.58,.78))));float a=pow(1.-max(n.z,0.),6.)*(.035+day*.20);gl_FragColor=vec4(.29,.58,.93,a);}',transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));this.planet.add(atmosphere);
   const haloGeo=new THREE.PlaneGeometry(10,10);const halo=new THREE.Mesh(haloGeo,new THREE.ShaderMaterial({vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:'varying vec2 vUv;void main(){float r=length(vUv-.5);float a=exp(-r*r*25.)*.09;gl_FragColor=vec4(.17,.35,.65,a);}',transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));halo.position.z=-1.4;this.planet.add(halo);
   this.buildSurface();this.buildWorld();
   this.stats={frames:0,p95:0,quality:this.quality};
@@ -56,7 +98,7 @@ export class CosmosRenderer {
   for(let i=0;i<108;i++){const section=Math.floor(i/36);positions.set([(section-1)*7+(rng()-.5)*5,-.9+rng()*.9,-12-rng()*8],i*3);colors.set(section===1?[1.,.55,.25]:[.57,.79,1.],i*3);}
   const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(positions,3));geo.setAttribute('color',new THREE.BufferAttribute(colors,3));geo.setIndex(new THREE.BufferAttribute(new Uint16Array(108),1));geo.setDrawRange(0,0);
   this.memories=new THREE.Points(geo,new THREE.PointsMaterial({size:.055,vertexColors:true,transparent:true,opacity:.7,blending:THREE.AdditiveBlending,depthWrite:false}));this.surface.add(this.memories);
-  this.beacons=[];
+  this.beacons=[];this.landmarkWidths=[];
   for(const [i,x] of [-7,0,7].entries()){
    const beacon=new THREE.Group();beacon.position.set(x,-1.0,-14-(i===1?4:0));
    const core=new THREE.Mesh(new THREE.SphereGeometry(.075,12,10),new THREE.MeshBasicMaterial({color:i===1?0xffbc83:0xc3e7ff}));beacon.add(core);
@@ -66,17 +108,30 @@ export class CosmosRenderer {
   const human=new THREE.Group();const material=new THREE.MeshBasicMaterial({color:0x03060a});const head=new THREE.Mesh(new THREE.SphereGeometry(.055,10,8),material);head.position.y=.4;human.add(head);const body=new THREE.Mesh(new THREE.CapsuleGeometry(.06,.19,4,8),material);body.position.y=.22;human.add(body);for(const x of [-.027,.027]){const leg=new THREE.Mesh(new THREE.CylinderGeometry(.017,.014,.20,6),material);leg.position.set(x,.04,0);human.add(leg);}human.position.set(2.8,-1.32,-8);this.surface.add(human);
  }
  buildWorld(){this.worldNodes=[];}
- createWorldNode(){
-  const geometry=new THREE.SphereGeometry(1,36,24);
-  const material=new THREE.ShaderMaterial({uniforms:{time:{value:0},tint:{value:new THREE.Vector3(1,1,1)},opacity:{value:1}},vertexShader:sphereVertex,fragmentShader:`precision highp float;uniform float time,opacity;uniform vec3 tint;varying vec3 vNormal,vPos,vWorld;${noise}void main(){vec3 p=normalize(vPos);float f=fbm(p*6.+vec3(time*.06));float ridge=pow(.5+.5*sin(p.y*30.+f*16.+time*.1),14.);float edge=pow(1.-abs(vNormal.z),3.);float dots=step(.82,noise(p*230.));vec3 col=tint*(.035+ridge*.35+edge*.5+dots*.10);gl_FragColor=vec4(col,opacity);}`,transparent:true,depthWrite:true});
-  const mesh=new THREE.Mesh(geometry,material);this.world.add(mesh);this.worldNodes.push(mesh);return mesh;
+ createWorldNode(){const node=createParticleNode();this.world.add(node);this.worldNodes.push(node);return node;}
+ setLandmarkBounds(widths){if(widths.every((width,i)=>width===this.landmarkWidths[i]))return;this.landmarkWidths=[...widths];this.fitLandmarks();}
+ fitLandmarks(){
+  if(!this.width||!this.beacons?.length)return;
+  // Fit the real beacons on the ground plane using the resting camera. The DOM
+  // labels receive their projection; neither layer needs an independent clamp.
+  const camera=new THREE.PerspectiveCamera(this.mobile?55:48,this.width/this.height,.1,400);
+  camera.position.set(0,1,6);camera.lookAt(0,1,-23);camera.updateMatrixWorld();
+  const targets=surfaceLandmarkTargets(this.width,this.height,this.landmarkWidths),ray=new THREE.Vector3();
+  const positions=this.memories.geometry.attributes.position;
+  this.beacons.forEach((beacon,i)=>{
+   const old=beacon.position.clone(),target=targets[i];
+   ray.set(target.x/this.width*2-1,1-target.y/this.height*2,.5).unproject(camera).sub(camera.position).normalize();
+   const distance=(-1-camera.position.y)/ray.y;
+   beacon.position.copy(camera.position).addScaledVector(ray,distance);
+   for(let j=i*36;j<(i+1)*36;j++){positions.setX(j,positions.getX(j)+beacon.position.x-old.x);positions.setZ(j,positions.getZ(j)+beacon.position.z-old.z);}
+  });positions.needsUpdate=true;
  }
- resize(width,height){this.width=width;this.height=height;this.mobile=width<700;this.dpr=Math.min(devicePixelRatio||1,this.quality==='low'?1:this.mobile?1.25:1.5);this.renderer.setPixelRatio(this.dpr);this.renderer.setSize(width,height,false);this.camera.aspect=width/height;this.camera.updateProjectionMatrix();for(const s of [this.stars,this.surfaceStars,this.worldStars])s.material.uniforms.dpr.value=this.dpr;}
+ resize(width,height){this.width=width;this.height=height;this.mobile=width<=700;this.dpr=Math.min(devicePixelRatio||1,this.quality==='low'?1:this.mobile?1.25:1.5);this.renderer.setPixelRatio(this.dpr);this.renderer.setSize(width,height,false);this.camera.aspect=width/height;this.camera.updateProjectionMatrix();for(const s of [this.stars,this.surfaceStars,this.worldStars])s.material.uniforms.dpr.value=this.dpr;this.fitLandmarks();}
  setCounts(counts){const sections=['opinions','cases','records'];if(this.counts&&sections.every(s=>this.counts[s]===counts[s]))return;const indices=this.memories.geometry.index;let length=0;sections.forEach((section,i)=>{for(let n=0;n<Math.min(36,counts[section]);n++)indices.array[length++]=i*36+n;});indices.needsUpdate=true;this.memories.geometry.setDrawRange(0,length);this.counts={...counts};}
  burst(){this.pulse=1;}
  setFocus(section){this.targetFocus={opinions:-1,cases:0,records:1}[section]||0;}
  frame(view,progress,dt,paused=false,reduced=false){
-  if(!paused)this.time+=Math.min(dt,.04);this.focus=reduced?this.targetFocus:THREE.MathUtils.damp(this.focus,this.targetFocus,3,dt);this.pulse=Math.max(0,this.pulse-dt*.4);
+  if(!paused)this.time+=Math.min(dt,.04);this.focus=reduced?this.targetFocus:THREE.MathUtils.damp(this.focus,this.targetFocus,3,dt);this.pulse=reduced?0:Math.max(0,this.pulse-dt*.4);
   const t=this.time;this.globe.material.uniforms.time.value=t;this.ring.material.uniforms.time.value=t;this.skyRing.material.uniforms.time.value=t;
   this.stars.rotation.y=t*.0015;this.surfaceStars.rotation.y=t*.001;
   const descending=view==='travel';const surface=view==='planet'||descending&&progress>.76;
@@ -93,16 +148,15 @@ export class CosmosRenderer {
   this.recordFrame(dt);
  }
  render(nodes){
-  // Perspective camera with meshes fitted to the existing screen-space layout.
+  // Background uses the camera; opinion particles keep exact screen-space hit targets.
   this.camera.fov=42;this.camera.position.set(0,0,10);this.camera.lookAt(0,0,0);this.camera.updateProjectionMatrix();
-  const h=2*10*Math.tan(THREE.MathUtils.degToRad(21)),scale=h/this.height;
-  nodes.forEach((n,i)=>{const mesh=this.worldNodes[i]||this.createWorldNode();mesh.visible=true;mesh.position.set((n.x-this.width/2)*scale,(this.height/2-n.y)*scale,0);mesh.scale.setScalar(n.r*scale);mesh.material.uniforms.time.value=n.time;mesh.material.uniforms.tint.value.fromArray(n.tint);mesh.material.uniforms.opacity.value=n.opacity;});
+  nodes.forEach((n,i)=>{const mesh=this.worldNodes[i]||this.createWorldNode();mesh.visible=true;updateParticleNode(mesh,n,this.width,this.height,this.dpr);});
   for(let i=nodes.length;i<this.worldNodes.length;i++)this.worldNodes[i].visible=false;
   this.renderer.render(this.world,this.camera);
  }
- projectLandmarks(){return this.beacons.map(b=>{const p=b.position.clone();p.y+=.4;p.project(this.camera);return{x:(p.x*.5+.5)*this.width,y:(-p.y*.5+.5)*this.height,visible:p.z<1};});}
+ projectLandmarks(){return this.beacons.map(b=>{const p=b.position.clone().project(this.camera);return{x:(p.x*.5+.5)*this.width,y:(-p.y*.5+.5)*this.height-12.5,visible:p.z>-1&&p.z<1&&Math.abs(p.x)<=1&&Math.abs(p.y)<=1};});}
  projectPlanet(){const p=this.planet.position.clone().project(this.camera);const distance=this.camera.position.distanceTo(this.planet.position);return{x:(p.x*.5+.5)*this.width,y:(-p.y*.5+.5)*this.height,r:1.58*this.height/(2*distance*Math.tan(THREE.MathUtils.degToRad(this.camera.fov/2)))};}
  recordFrame(dt){if(dt<=0||dt>.25)return;this.stats.frames++;this.frames.push(dt*1000);if(this.frames.length>180)this.frames.shift();if(this.stats.frames%180===0){const sorted=[...this.frames].sort((a,b)=>a-b);this.stats.p95=sorted[Math.floor(sorted.length*.95)]||0;this.stats.median=sorted[Math.floor(sorted.length*.5)]||0;this.stats.fps=1000/(sorted.reduce((a,b)=>a+b,0)/sorted.length);if(this.stats.p95>35&&this.quality!=='low'){this.quality='low';this.stats.quality='low';this.stars.geometry.setDrawRange(0,2800);this.surfaceStars.geometry.setDrawRange(0,1600);this.worldStars.geometry.setDrawRange(0,1000);this.resize(this.width,this.height);}}}
- getStats(){return{...this.stats,memory:{...this.renderer.info.memory},drawCalls:this.renderer.info.render.calls,texturesReady:!!this.textureLoaded};}
+ getStats(){return{...this.stats,memory:{...this.renderer.info.memory},drawCalls:this.renderer.info.render.calls,points:this.renderer.info.render.points,texturesReady:!!this.textureLoaded};}
  dispose(){const seen=new Set();for(const scene of [this.scene,this.surface,this.world])scene.traverse(o=>{if(o.geometry&&!seen.has(o.geometry)){seen.add(o.geometry);o.geometry.dispose();}if(o.material){for(const m of Array.isArray(o.material)?o.material:[o.material]){m.map?.dispose();m.dispose();}}});this.renderer.dispose();}
 }

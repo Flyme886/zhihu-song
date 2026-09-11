@@ -33,3 +33,22 @@ test('repulsion yields the other sphere without stealing dragged position', () =
   const same={x:0,y:0,r:50};separate(me,same,1/60,me);
   assert.ok(Number.isFinite(same.x)&&same.x!==0);
 });
+
+test('approaching an unconfirmed viewpoint offers a choice without inventing agreement', async () => {
+  const {nearestUnconfirmed} = await import('../relations.js');
+  const me={id:'me',x:0,y:0,r:50}, near={id:'a',x:135,y:0,r:50}, far={id:'b',x:400,y:0,r:50};
+  const overrides=new Map(), classify=n=>relationFor(n,false,overrides);
+  assert.equal(nearestUnconfirmed(me,[me,near,far],classify),near);
+  assert.equal(classify(near),'unknown');
+  overrides.set('a','unrelated');
+  assert.equal(nearestUnconfirmed(me,[me,near,far],classify),null);
+});
+
+test('the nearest unknown sphere can be chosen even beside a previously classified viewpoint', async () => {
+  const {nearestEncounter}=await import('../relations.js');
+  const me={id:'me',x:0,y:0,r:50}, known={id:'a',x:-150,y:0,r:50}, unknown={id:'b',x:115,y:0,r:50};
+  const classify=n=>n===known?'similar':'unknown';
+  assert.equal(nearestEncounter(me,[me,known,unknown],null,classify),unknown);
+  unknown.x=190;
+  assert.equal(nearestEncounter(me,[me,known,unknown],null,classify),known);
+});
