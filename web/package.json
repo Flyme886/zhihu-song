@@ -1,0 +1,12 @@
+{
+  "name": "gravity-of-minds",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "dev": "python3 server.py --port 8081"
+  },
+  "dependencies": {
+    "three": "0.180.0"
+  }
+}

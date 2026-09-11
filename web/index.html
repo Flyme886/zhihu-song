@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>思想引力场</title><meta name="description" content="让思想成为星球，在一张可以触碰的画布上发现不同的观点。">
+  <meta name="theme-color" content="#03060b"><link rel="stylesheet" href="/style.css"><link rel="stylesheet" href="/planet.css">
+</head>
+<body data-view="home">
+  <aside id="topic-sidebar" aria-label="问题导航">
+    <div class="sidebar-head"><a class="sidebar-brand" href="/">思想引力场<span>GRAVITY OF MINDS</span></a><button id="close-topics" aria-label="关闭问题列表">×</button></div>
+    <p class="sidebar-intro">有问题，就有另一种看法。</p>
+    <label class="topic-search"><span aria-hidden="true">⌕</span><input id="topic-search" type="search" placeholder="搜索感兴趣的问题" aria-label="搜索问题"></label>
+    <div class="topic-filters" aria-label="筛选问题"><button data-filter="all" aria-pressed="true">全部</button><button data-filter="classic" aria-pressed="false">经典脑洞</button><button data-filter="hot" aria-pressed="false">热榜精选</button></div>
+    <div class="list-caption">推荐问题<span>按推荐顺序</span></div>
+    <nav id="topic-list" aria-label="话题列表"></nav>
+    <div class="sidebar-bottom"><button id="my-records">▤ <span>我的讨论</span><b id="record-count">0</b></button><small>想法留在本机，探索留给自己。</small></div>
+  </aside>
+  <button id="sidebar-backdrop" aria-label="收起问题列表" hidden></button>
+  <div id="storage-warning" role="status" hidden></div>
+  <main id="app" data-stage="world">
+    <canvas id="universe" aria-label="由晶莹粒子构成的思想星球，自由漂浮在画布中"></canvas>
+    <canvas id="connections" aria-hidden="true"></canvas>
+    <div id="node-layer" aria-label="思想星球"></div>
+    <header class="topbar">
+      <button id="open-topics" aria-expanded="false" aria-controls="topic-sidebar">☰ 切换问题</button><button class="brand" id="home" aria-label="回到我的星球"><span class="brand-mark" aria-hidden="true">◯</span><span>思想引力场</span></button>
+      <div class="world-only exploration">相似结伴，不同对话</div>
+      <div class="top-right world-only"><div class="search-wrap"><label class="search"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="搜索观点" aria-label="搜索观点" autocomplete="off"><kbd>/</kbd></label><div id="search-results" hidden></div></div><button class="profile" id="profile" aria-label="查看我的知识">我</button></div>
+    </header>
+    <section id="entry" aria-label="输入你的知识">
+      <div class="entry-label"><span></span>写下你的想法<button id="close-composer" aria-label="收起输入">×</button></div>
+      <form id="knowledge-form">
+        <label for="knowledge">这件事，你怎么看？</label>
+        <textarea id="knowledge" maxlength="3000" placeholder="一段知识、一个观点，或一个一直想探索的问题……" rows="3"></textarea>
+        <div class="entry-bottom"><button type="button" class="text-button" id="try-example">填入一个示例</button><button class="enter-button" id="enter" type="submit" disabled>放入我的星球 <span aria-hidden="true">↗</span></button></div>
+      </form>
+      <p class="entry-note">草稿保存在本机，你可以随时修改。</p>
+    </section>
+    <section id="world-context" class="world-only" aria-label="当前议题"><span class="eyebrow">同一个问题，不同的关注</span><h1>无人驾驶越来越近，我们该以什么速度迎接它？</h1><p id="topic-description"></p><button id="topic-rules">规则与来源 ↗</button><p id="world-mode">示例关系 · 可自行纠正</p></section>
+    <button id="compose" class="world-only">＋ 写下我的想法</button><button id="resume-discussion" hidden>继续上次讨论 ↗</button><button id="egg-trigger" hidden aria-label="查看话题彩蛋"></button><div id="case-bar"><button id="open-case">案例与来源 ↗</button><span id="case-mode">正在读取案例…</span></div>
+    <div id="pair-status" hidden><span class="pair-symbol" aria-hidden="true">○—○</span><div><small>正在结伴</small><span id="pair-name"></span></div><button id="unlink">解除连接</button></div>
+    <button id="saved-record" class="world-only" hidden>查看讨论记录 ↗</button>
+    <section id="relation-card" hidden aria-label="观点关系"><button id="dismiss-relation" class="close" aria-label="收起关系提示">×</button><span class="eyebrow" id="relation-label"></span><h2 id="relation-title"></h2><p id="relation-reason"></p><div class="relation-actions"><button class="enter-button" id="relation-action"></button><button class="text-button" id="relation-edit">纠正关系</button></div></section>
+    <article id="hover-card" hidden aria-label="知乎回答卡片">
+      <div class="answer-brand"><img class="zhihu-logo" src="/assets/zhihu.svg" alt="知乎"><span id="answer-source"></span><button id="close-hover" aria-label="关闭回答卡片">×</button></div>
+      <h2></h2><div class="answer-person"><img id="answer-avatar" referrerpolicy="no-referrer" alt=""><span id="avatar-fallback"></span><div><strong id="answer-author"></strong><small id="answer-bio"></small></div></div>
+      <div id="answer-context" hidden></div><div class="answer-reading" id="answer-text" tabindex="0" aria-label="观点材料，可滚动"></div>
+      <div class="answer-meta"><span id="answer-date"></span><a id="answer-link" target="_blank" rel="noopener noreferrer">知乎原回答 ↗</a></div>
+      <div class="answer-actions"><button id="expand-hover">展开阅读</button><button id="hover-debate">让 Agent 对谈 ↗</button></div>
+    </article>
+    <button id="start-agents" class="world-only">◌ <span>Agent × Agent</span><small>选择两颗星球对谈 ↗</small></button>
+    <div id="world-footer" class="world-only"><p id="hint">靠近一个星球，看看它的想法</p><span class="gesture">拖动「我」靠近另一颗球 · 相近连接，有分歧就聊聊</span></div>
+    <nav class="map-controls world-only" aria-label="画布控制"><button id="zoom-out" aria-label="缩小">−</button><span id="zoom-value">100%</span><button id="zoom-in" aria-label="放大">＋</button><span class="divider"></span><button id="recenter" aria-label="回到我的星球">◎</button><button id="pause" aria-label="暂停动画" aria-pressed="false">Ⅱ</button></nav>
+    <div id="fallback" hidden role="alert">当前浏览器无法显示粒子效果。请启用硬件加速后重新打开。</div>
+    <span id="announcer" class="sr-only" aria-live="polite"></span>
+  </main>
+  <dialog id="detail"><div class="dialog-top"><span class="eyebrow" id="detail-type">示例观点</span><button class="close" id="close-detail" aria-label="关闭详情">×</button></div><div class="detail-dot" aria-hidden="true"></div><h1 id="detail-title"></h1><p id="detail-body"></p><div id="detail-meta"></div><fieldset id="relation-settings" hidden><legend id="relation-origin">你认为你们的观点如何？</legend><div class="relation-options"><button type="button" data-relation="similar" aria-pressed="false">相近</button><button type="button" data-relation="different" aria-pressed="false">有分歧</button><button type="button" data-relation="unrelated" aria-pressed="false">暂不相关</button></div></fieldset><div class="detail-actions"><button id="detail-pair" class="text-button">确认相近并结伴</button><button id="detail-debate" class="text-button">选两颗球对谈 ↗</button></div><button id="approach" class="enter-button">靠近这颗星球 <span aria-hidden="true">↗</span></button><button id="edit-knowledge" class="text-button" hidden>补充我的知识</button><form id="edit-form" hidden><label for="edit-text">我的知识</label><textarea id="edit-text" maxlength="3000" rows="6"></textarea><button class="enter-button" type="submit">保存修改</button></form></dialog>
+  <aside id="discussion" role="dialog" aria-modal="true" aria-labelledby="discussion-heading" hidden>
+    <div class="discussion-top"><span class="eyebrow">让思考，变得具体</span><button id="close-discussion" class="close" aria-label="关闭讨论，返回画布">×</button></div>
+    <h1 id="discussion-heading">让两种思考，<br>认真交谈。</h1>
+    <p class="discussion-sub"><b id="discussion-speaker">Agent A</b> <span>×</span> <span id="discussion-target"></span></p>
+    <div class="discussion-steps" aria-label="讨论进度"><span class="discussion-step active">01 说清楚</span><i></i><span class="discussion-step">02 问关键</span><i></i><span class="discussion-step">03 留下来</span></div>
+    <p id="discussion-source"></p>
+    <div id="discussion-live"><div id="discussion-log" role="log" aria-live="polite" aria-label="讨论内容"></div>
+      <p id="agent-status" role="status"></p><div class="turn-actions"><button id="auto-turn" class="text-button">自动对谈</button><button id="next-turn" class="text-button">听听另一种看法 →</button><button id="finish-discussion" class="text-button">结束并整理</button></div>
+      <details id="scenario-details"><summary>换个条件，再想一步 <span>＋</span></summary><div id="scenario-prompts" aria-label="假设条件，仅在点击加入讨论后生效"></div></details><form id="interrupt-form"><label for="interrupt-text">你来主持，随时补充条件。</label><textarea id="interrupt-text" placeholder="向两位 Agent 补充条件或问题…" maxlength="600" rows="2" required></textarea><button class="enter-button" type="submit">加入讨论 ↗</button></form>
+    </div>
+    <section id="discussion-summary" hidden><div class="summary-intro">这次相遇，留下什么？</div><div class="summary-block"><span>共同点</span><p id="summary-common"></p><textarea id="record-common" rows="2" maxlength="1200" aria-label="我确认的共同点" placeholder="写下你确认的共同点，也可以保留分歧…"></textarea></div><div class="summary-block"><span>仍有分歧／各自关注</span><p id="summary-difference"></p></div><div class="summary-block"><span>待核实</span><p id="summary-open"></p></div><details id="transcript"><summary>回看本次发言</summary><div id="transcript-body"></div></details><label for="record-note">我现在的想法</label><textarea id="record-note" rows="2" maxlength="1200" placeholder="写下你真正认可的理解…"></textarea><label for="record-change">我的判断</label><select id="record-change"><option value="keep">保留原判断</option><option value="supplement">补充原判断</option><option value="changed">改变原判断</option></select><button id="save-record" class="enter-button">确认并保存到本机 ↗</button><p class="session-note">保存在本机；可在左侧「我的讨论」回看和导出。</p></section>
+  </aside>
+  <dialog id="agent-picker" aria-labelledby="picker-heading"><div class="dialog-top"><span class="eyebrow">AGENT × AGENT</span><button class="close" id="close-picker" aria-label="关闭对谈选择">×</button></div><h1 id="picker-heading">让哪两颗星球对谈？</h1><p>各自阅读材料，回应对方。你可以旁听，也可以随时加入。</p><form id="agent-form"><label for="agent-a">Agent A · 观点来源</label><select id="agent-a"></select><div class="picker-cross">×</div><label for="agent-b">Agent B · 观点来源</label><select id="agent-b"></select><label for="agent-mode">对谈方式</label><select id="agent-mode"><option value="demo">演示对谈 · 本地预设逻辑</option><option value="zhihu" disabled>知乎直答 · 检查服务中</option><option value="live" disabled>实时 Agent · 检查服务中</option></select><p id="picker-status" role="status">Agent 发言不代表原答主本人，不强行为一致观点制造分歧。</p><button id="begin-agents" class="enter-button" type="submit">开始对谈 ↗</button></form></dialog>
+  <dialog id="case-info" aria-labelledby="case-heading"><div class="dialog-top"><span class="eyebrow">案例与来源</span><button class="close" id="close-case" aria-label="关闭案例说明">×</button></div><h1 id="case-heading">问题的另一面。</h1><p id="case-description"></p><div class="case-facts"><span>01　阅读来源</span><span>02　选择两颗星球</span><span>03　加入假设条件</span><span>04　留下你的判断</span></div><p id="case-rules"></p><button id="case-egg" class="text-button" hidden>再看一次小彩蛋 ↗</button><h2>背景阅读</h2><div id="case-background"></div><h2>知乎社区材料</h2><p id="api-connection"></p><p id="case-status" role="status"></p><button id="sync-zhihu" class="enter-button">同步知乎回答摘要 ↗</button><p class="session-note">每题最多两次搜索，成功结果缓存 24 小时。同步后更新当前材料；讨论记录保留当时的来源快照。</p><a href="https://developer.zhihu.com/docs?key=zhihu_search" target="_blank" rel="noopener noreferrer">查看官方接口说明 ↗</a></dialog>
+  <dialog id="records-dialog" aria-labelledby="records-heading"><div class="dialog-top"><span class="eyebrow">留下来的想法</span><button class="close" id="close-records" aria-label="关闭我的讨论">×</button></div><h1 id="records-heading">我的讨论</h1><p>每次相遇，都可以留下一个新的理解。</p><div id="records-list"></div><p id="delete-status" role="status"></p><button id="undo-delete" hidden>撤销删除</button></dialog>
+  <dialog id="export-dialog" aria-labelledby="export-heading"><div class="dialog-top"><span class="eyebrow">确认后导出</span><button class="close" id="close-export" aria-label="关闭导出">×</button></div><h1 id="export-heading">这次相遇，留下什么？</h1><label for="export-note">卡片上的想法</label><textarea id="export-note" maxlength="1200" rows="4"></textarea><canvas id="share-preview" aria-label="分享卡片预览"></canvas><div class="export-actions"><button id="export-png" class="enter-button">保存图片 ↗</button><button id="export-md" class="text-button">导出讨论全文 .md</button></div><p id="export-status" role="status"></p></dialog>
+  <dialog id="egg-dialog" aria-labelledby="egg-heading"><div class="dialog-top"><span class="eyebrow">一个小小的转念</span><button class="close" id="close-egg" aria-label="关闭彩蛋">×</button></div><h1 id="egg-heading"></h1><p>这只是一条新假设。放入输入框，再由你决定是否提交。</p><div id="egg-options"></div></dialog>
+  <script src="/app.js" type="module"></script>
+</body></html>

@@ -1,0 +1,55 @@
+{
+  "desktop": {
+    "width": 1440,
+    "height": 900,
+    "dpr": 1,
+    "fps": 29.412846060516955,
+    "p95": 49.5,
+    "median": 30.30000000000291,
+    "gpu": "ANGLE (Apple, ANGLE Metal Renderer: Apple M5, Unspecified Version)"
+  },
+  "mobile": {
+    "width": 390,
+    "height": 844,
+    "dpr": 2,
+    "emulated": true,
+    "fps": 29.575408048207922,
+    "p95": 40.20000000000073,
+    "median": 30.100000000000364
+  },
+  "audio": {
+    "metrics": {
+      "duration": 13.26,
+      "channels": 2,
+      "sampleRate": 48000,
+      "peak": 0.0726565420627594,
+      "peakDb": -22.774505506509417,
+      "rms": 0.013883605613871237,
+      "maxAdjacentStep": 0.010310858953744173
+    },
+    "events": [
+      {
+        "name": "enter",
+        "time": 0.042666666666666665
+      },
+      {
+        "name": "ring",
+        "time": 3.8133333333333335
+      },
+      {
+        "name": "land",
+        "time": 7.013333333333334
+      }
+    ],
+    "noiseLoopBoundary": [
+      {
+        "first": 0,
+        "last": 0
+      },
+      {
+        "first": 0,
+        "last": 0
+      }
+    ]
+  }
+}

@@ -1,0 +1,361 @@
+{
+  "checks": [
+    {
+      "cycle": 1,
+      "view": "planet",
+      "memory": {
+        "geometries": 26,
+        "textures": 1
+      },
+      "activeSounds": 4
+    },
+    {
+      "cycle": 2,
+      "view": "planet",
+      "memory": {
+        "geometries": 26,
+        "textures": 1
+      },
+      "activeSounds": 4
+    },
+    {
+      "cycle": 3,
+      "view": "planet",
+      "memory": {
+        "geometries": 26,
+        "textures": 1
+      },
+      "activeSounds": 4
+    },
+    {
+      "cycle": 4,
+      "view": "planet",
+      "memory": {
+        "geometries": 26,
+        "textures": 1
+      },
+      "activeSounds": 4
+    },
+    {
+      "cycle": 5,
+      "view": "planet",
+      "memory": {
+        "geometries": 26,
+        "textures": 1
+      },
+      "activeSounds": 4
+    },
+    {
+      "cycle": 6,
+      "view": "planet",
+      "memory": {
+        "geometries": 26,
+        "textures": 1
+      },
+      "activeSounds": 2
+    },
+    {
+      "cycle": 7,
+      "view": "planet",
+      "memory": {
+        "geometries": 26,
+        "textures": 1
+      },
+      "activeSounds": 4
+    },
+    {
+      "cycle": 8,
+      "view": "planet",
+      "memory": {
+        "geometries": 26,
+        "textures": 1
+      },
+      "activeSounds": 4
+    },
+    {
+      "cycle": 9,
+      "view": "planet",
+      "memory": {
+        "geometries": 26,
+        "textures": 1
+      },
+      "activeSounds": 4
+    },
+    {
+      "cycle": 10,
+      "view": "planet",
+      "memory": {
+        "geometries": 26,
+        "textures": 1
+      },
+      "activeSounds": 4
+    },
+    {
+      "cycle": 11,
+      "view": "planet",
+      "memory": {
+        "geometries": 26,
+        "textures": 1
+      },
+      "activeSounds": 4
+    },
+    {
+      "cycle": 12,
+      "view": "planet",
+      "memory": {
+        "geometries": 26,
+        "textures": 1
+      },
+      "activeSounds": 4
+    },
+    {
+      "cycle": 13,
+      "view": "planet",
+      "memory": {
+        "geometries": 26,
+        "textures": 1
+      },
+      "activeSounds": 4
+    },
+    {
+      "cycle": 14,
+      "view": "planet",
+      "memory": {
+        "geometries": 26,
+        "textures": 1
+      },
+      "activeSounds": 4
+    },
+    {
+      "cycle": 15,
+      "view": "planet",
+      "memory": {
+        "geometries": 26,
+        "textures": 1
+      },
+      "activeSounds": 4
+    },
+    {
+      "cycle": 16,
+      "view": "planet",
+      "memory": {
+        "geometries": 26,
+        "textures": 1
+      },
+      "activeSounds": 4
+    },
+    {
+      "cycle": 17,
+      "view": "planet",
+      "memory": {
+        "geometries": 26,
+        "textures": 1
+      },
+      "activeSounds": 4
+    },
+    {
+      "cycle": 18,
+      "view": "planet",
+      "memory": {
+        "geometries": 26,
+        "textures": 1
+      },
+      "activeSounds": 4
+    },
+    {
+      "cycle": 19,
+      "view": "planet",
+      "memory": {
+        "geometries": 26,
+        "textures": 1
+      },
+      "activeSounds": 4
+    },
+    {
+      "cycle": 20,
+      "view": "planet",
+      "memory": {
+        "geometries": 26,
+        "textures": 1
+      },
+      "activeSounds": 4
+    }
+  ],
+  "settled": {
+    "audio": {
+      "state": "running",
+      "active": 0,
+      "scene": "planet",
+      "settings": {
+        "enabled": true,
+        "master": 0.3,
+        "ambient": 0.65,
+        "effects": 0.75,
+        "transitions": 0.6
+      },
+      "events": [
+        {
+          "name": "land",
+          "time": 1.0773333333333333
+        },
+        {
+          "name": "enter",
+          "time": 2.912
+        },
+        {
+          "name": "land",
+          "time": 3.9146666666666667
+        },
+        {
+          "name": "enter",
+          "time": 7.312
+        },
+        {
+          "name": "land",
+          "time": 7.456
+        },
+        {
+          "name": "enter",
+          "time": 10.837333333333333
+        },
+        {
+          "name": "land",
+          "time": 10.976
+        },
+        {
+          "name": "enter",
+          "time": 14.357333333333333
+        },
+        {
+          "name": "land",
+          "time": 14.522666666666666
+        },
+        {
+          "name": "enter",
+          "time": 17.888
+        },
+        {
+          "name": "land",
+          "time": 18.906666666666666
+        },
+        {
+          "name": "enter",
+          "time": 22.309333333333335
+        },
+        {
+          "name": "enter",
+          "time": 25.850666666666665
+        },
+        {
+          "name": "land",
+          "time": 26.858666666666668
+        },
+        {
+          "name": "enter",
+          "time": 30.245333333333335
+        },
+        {
+          "name": "land",
+          "time": 30.394666666666666
+        },
+        {
+          "name": "enter",
+          "time": 33.781333333333336
+        },
+        {
+          "name": "land",
+          "time": 34.8
+        },
+        {
+          "name": "enter",
+          "time": 38.181333333333335
+        },
+        {
+          "name": "land",
+          "time": 38.368
+        },
+        {
+          "name": "enter",
+          "time": 41.754666666666665
+        },
+        {
+          "name": "land",
+          "time": 41.92
+        },
+        {
+          "name": "enter",
+          "time": 45.29066666666667
+        },
+        {
+          "name": "land",
+          "time": 45.434666666666665
+        },
+        {
+          "name": "enter",
+          "time": 48.821333333333335
+        },
+        {
+          "name": "land",
+          "time": 48.99733333333333
+        },
+        {
+          "name": "enter",
+          "time": 52.35733333333334
+        },
+        {
+          "name": "land",
+          "time": 52.49066666666667
+        },
+        {
+          "name": "enter",
+          "time": 55.84
+        },
+        {
+          "name": "land",
+          "time": 56.858666666666664
+        },
+        {
+          "name": "enter",
+          "time": 60.22933333333334
+        },
+        {
+          "name": "land",
+          "time": 60.416
+        },
+        {
+          "name": "enter",
+          "time": 63.797333333333334
+        },
+        {
+          "name": "land",
+          "time": 64.816
+        },
+        {
+          "name": "enter",
+          "time": 68.18666666666667
+        },
+        {
+          "name": "land",
+          "time": 68.35733333333333
+        },
+        {
+          "name": "enter",
+          "time": 71.728
+        },
+        {
+          "name": "land",
+          "time": 71.872
+        },
+        {
+          "name": "enter",
+          "time": 75.22666666666667
+        },
+        {
+          "name": "land",
+          "time": 75.38133333333333
+        }
+      ]
+    },
+    "errors": []
+  }
+}
