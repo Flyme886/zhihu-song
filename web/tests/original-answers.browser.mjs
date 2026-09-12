@@ -51,10 +51,10 @@ export async function verifyHover(page){
  await page.hover('[data-node="layers"]');
  await page.waitForSelector('#hover-card:not([hidden])',{state:'visible'});
  const first=await page.evaluate(()=>{const card=document.querySelector('#hover-card'),p=document.querySelector('#answer-text p'),r=card.getBoundingClientRect();return{id:card.dataset.answerId,width:r.width,height:r.height,top:r.top,bottom:r.bottom,x:r.x,paragraphClamp:getComputedStyle(p).webkitLineClamp,bodyHeight:document.querySelector('#answer-text').clientHeight,scrollHeight:document.querySelector('#answer-text').scrollHeight};});
- assert.equal(first.id,'3380704164');assert.ok(Math.abs(first.width/first.height-9/16)<.003);assert.equal(first.paragraphClamp,'none');assert.ok(first.scrollHeight>first.bodyHeight);
+ assert.equal(first.id,'3380704164');assert.ok(first.width>=280);assert.ok(first.bodyHeight>=76);assert.ok(first.bottom<=await page.evaluate(()=>innerHeight)-108);assert.equal(first.paragraphClamp,'none');assert.ok(first.scrollHeight>first.bodyHeight);
  await page.click('#answer-next');
  const next=await page.evaluate(()=>{const card=document.querySelector('#hover-card'),r=card.getBoundingClientRect();return{id:card.dataset.answerId,width:r.width,height:r.height,top:r.top,x:r.x,scrollTop:document.querySelector('#answer-text').scrollTop,author:document.querySelector('#answer-author').textContent};});
- assert.equal(next.id,'131055050');assert.equal(next.author,'Mandelbrot');assert.equal(next.scrollTop,0);assert.deepEqual([first.width,first.height,first.top,first.x],[next.width,next.height,next.top,next.x]);
+ assert.equal(next.id,'131055050');assert.equal(next.author,'Mandelbrot');assert.equal(next.scrollTop,0);assert.equal(first.width,next.width);assert.ok(next.top>=72);assert.equal(await page.evaluate(()=>document.querySelector('#hover-card').dataset.nodeId),catalog.find(t=>t.id==='sun').answers[1].id);
  await page.click('#expand-hover');
  await page.waitForFunction(()=>{const img=document.querySelector('#detail-body img');return img?.complete&&img.naturalWidth>0;},undefined,{timeout:15000});
  const images=await page.evaluate(()=>[...document.querySelectorAll('#detail-body img')].map(img=>({src:img.src,loaded:img.complete&&img.naturalWidth>0})));

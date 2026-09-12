@@ -1,0 +1,197 @@
+{
+  "generator": "Original mathematical geometry authored for this project; no downloaded models, images, or external data.",
+  "threeRevision": "180",
+  "assets": [
+    {
+      "file": "traveler.glb",
+      "bytes": 1870076,
+      "meshCount": 16,
+      "triangles": 31980,
+      "nodeCount": 32,
+      "materials": 3,
+      "externalResources": 0,
+      "allGeometryFinite": true,
+      "clips": [
+        {
+          "name": "idle",
+          "duration": 2,
+          "tracks": 12,
+          "sampledAt": 0.625
+        },
+        {
+          "name": "walk",
+          "duration": 2,
+          "tracks": 12,
+          "sampledAt": 0.625
+        },
+        {
+          "name": "run",
+          "duration": 2,
+          "tracks": 12,
+          "sampledAt": 0.625
+        },
+        {
+          "name": "sit",
+          "duration": 2,
+          "tracks": 12,
+          "sampledAt": 0.625
+        },
+        {
+          "name": "read",
+          "duration": 2,
+          "tracks": 12,
+          "sampledAt": 0.625
+        }
+      ],
+      "requiredNodes": [
+        "avatar",
+        "head",
+        "torso",
+        "armL",
+        "armR",
+        "legL",
+        "legR",
+        "forearmL",
+        "forearmR",
+        "shinL",
+        "shinR",
+        "backpack"
+      ],
+      "parts": [
+        {
+          "name": "avatar",
+          "meshCount": 16,
+          "bounds": {
+            "min": [
+              -0.2678015482524424,
+              0.013500000953674318,
+              -0.2848895708322525
+            ],
+            "max": [
+              0.2678015482524424,
+              1.7372131787538527,
+              0.34
+            ]
+          }
+        }
+      ],
+      "standingBounds": {
+        "min": [
+          -0.2839084253252254,
+          0.013500000953674318,
+          -0.2848895708322525
+        ],
+        "max": [
+          0.2839084253252254,
+          1.7372131787538527,
+          0.34
+        ],
+        "size": [
+          0.5678168506504508,
+          1.7237131778001784,
+          0.6248895708322526
+        ]
+      }
+    },
+    {
+      "file": "environment.glb",
+      "bytes": 1932492,
+      "meshCount": 10,
+      "triangles": 36060,
+      "nodeCount": 20,
+      "materials": 5,
+      "externalResources": 0,
+      "allGeometryFinite": true,
+      "clips": [],
+      "requiredNodes": [
+        "bench",
+        "sign",
+        "plinth",
+        "bust"
+      ],
+      "parts": [
+        {
+          "name": "bench",
+          "meshCount": 3,
+          "bounds": {
+            "min": [
+              -0.8299999833106995,
+              0.00800000037997961,
+              -0.2933349013328552
+            ],
+            "max": [
+              0.8299999833106995,
+              0.8711087107658386,
+              0.22849999368190765
+            ]
+          }
+        },
+        {
+          "name": "sign",
+          "meshCount": 2,
+          "bounds": {
+            "min": [
+              -0.39500001072883606,
+              -4.768371808516747e-10,
+              -0.1550000011920929
+            ],
+            "max": [
+              0.39500001072883606,
+              1.6089999675750732,
+              0.1550000011920929
+            ]
+          }
+        },
+        {
+          "name": "plinth",
+          "meshCount": 2,
+          "bounds": {
+            "min": [
+              -0.3449999988079071,
+              -1.8477439578390431e-9,
+              -0.3100000023841858
+            ],
+            "max": [
+              0.3449999988079071,
+              0.7074999809265137,
+              0.3099999725818634
+            ]
+          }
+        },
+        {
+          "name": "bust",
+          "meshCount": 3,
+          "bounds": {
+            "min": [
+              -0.28801292181015015,
+              -8.940696516468449e-10,
+              -0.2029999941587448
+            ],
+            "max": [
+              0.28801292181015015,
+              0.7686699628829956,
+              0.2029999941587448
+            ]
+          }
+        }
+      ],
+      "standingBounds": {
+        "min": [
+          -0.8299999833106995,
+          -1.8477439578390431e-9,
+          -0.3100000023841858
+        ],
+        "max": [
+          0.8299999833106995,
+          1.6089999675750732,
+          0.3099999725818634
+        ],
+        "size": [
+          1.659999966621399,
+          1.6089999694228172,
+          0.6199999749660492
+        ]
+      }
+    }
+  ]
+}

@@ -12,7 +12,7 @@ import zhihu_api
 import thought_tasks
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from urllib.request import Request, urlopen
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs, unquote
 
 ROOT = Path(__file__).resolve().parent
 
@@ -71,6 +71,7 @@ def build_messages(data):
     ]
 
 class Handler(SimpleHTTPRequestHandler):
+    extensions_map = {**SimpleHTTPRequestHandler.extensions_map, '.glb': 'model/gltf-binary'}
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(ROOT), **kwargs)
     def end_headers(self):
@@ -103,6 +104,11 @@ class Handler(SimpleHTTPRequestHandler):
                                     'syncedAt': data['syncedAt'], 'source': data.get('source')})
         # Preview serves only public assets, never arbitrary repository/config files.
         path = urlparse(self.path).path
+        if Path(unquote(path)).suffix == '.glb':
+            asset = (ROOT / unquote(path).lstrip('/')).resolve()
+            if asset.is_relative_to(ROOT / 'assets' / 'planet' / 'daylight') and asset.is_file():
+                return super().do_GET()
+            return self.reply(404, {'error': 'Not found'})
         allowed = {'.js', '.css', '.html', '.svg', '.png', '.jpg', '.webp'}
         if path not in ('/', '/cases/catalog.json') and (Path(path).suffix not in allowed or any(p.startswith('.') for p in Path(path).parts[1:])):
             return self.reply(404, {'error': 'Not found'})

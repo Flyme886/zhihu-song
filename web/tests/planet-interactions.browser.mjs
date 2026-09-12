@@ -77,6 +77,8 @@ export async function verifyRelations(page,options={}){
   await dragPlanet(page,me,{x:other.x+d,y:other.y},options);
   await page.waitForFunction(()=>!document.querySelector('#relation-card').hidden);
   assert.equal(await page.evaluate(()=>document.querySelector('#relation-card').dataset.kind),'unknown');
+  assert.equal(await page.evaluate(()=>document.querySelector('#relation-card').parentElement.id),'app');
+  assert.equal(await page.evaluate(()=>document.querySelector('#hover-card').hidden),true);
   await page.click('[data-confirm-relation="similar"]');
   await page.waitForFunction(()=>document.querySelector('#app').dataset.paired==='true');
   const paired=await nodePositions(page);

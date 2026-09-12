@@ -1,0 +1,107 @@
+/* A readable preview and its relationship actions share one planet anchor. */
+#hover-card {
+  width:360px;
+  height:auto;
+  min-height:0;
+  max-height:calc(100dvh - 32px);
+  aspect-ratio:auto;
+  padding:18px 20px 16px;
+  border:1px solid #b9d5ed38;
+  border-top:2px solid var(--planet-color);
+  border-radius:18px;
+  background:#101c29fc;
+  box-shadow:0 18px 65px #0009;
+  overflow-x:hidden;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  scrollbar-width:thin;
+  scrollbar-color:#829fb44d transparent;
+}
+#hover-card[hidden],#hover-card [hidden] {display:none!important}
+#hover-card>:not(.answer-reading) {flex-shrink:0;min-width:0}
+#hover-card .answer-brand {gap:10px;min-height:28px}
+#hover-card .answer-brand>#answer-source {font-size:11px;line-height:1.5;letter-spacing:.3px}
+#hover-card .answer-brand .zhihu-logo {width:30px;height:auto}
+#hover-card .answer-brand button {min-width:28px;min-height:28px;border-radius:6px;color:#9fb6c8}
+#hover-card>h2 {
+  display:block;
+  overflow:visible;
+  -webkit-line-clamp:unset;
+  margin:10px 0 14px;
+  color:#e5eef6;
+  font-size:18px;
+  font-weight:550;
+  line-height:1.5;
+  letter-spacing:.1px;
+  overflow-wrap:anywhere;
+  text-wrap:pretty;
+}
+#hover-card .answer-person {gap:10px;padding-bottom:12px}
+#hover-card .answer-person img,#hover-card #avatar-fallback {width:32px;height:32px}
+#hover-card .answer-person strong {font-size:13px;line-height:1.5;color:#ccdce8;overflow-wrap:anywhere}
+#hover-card .answer-person small {max-width:none;font-size:11px;line-height:1.5;margin-top:3px;color:#91a8bb}
+#hover-card #answer-bio:empty {display:none}
+#hover-card .answer-reading {
+  flex:0 1 auto;
+  min-height:88px;
+  max-height:240px;
+  padding:14px 6px 4px 0;
+  color:#d2deea;
+  font-size:15px;
+  line-height:1.85;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  scrollbar-width:thin;
+  scrollbar-color:#829fb44d transparent;
+}
+#hover-card .original-content p {color:inherit;font-size:inherit;line-height:inherit;margin:0 0 .9em}
+#hover-card .original-content>:last-child {margin-bottom:0}
+#hover-card .original-content h1,#hover-card .original-content h2,#hover-card .original-content h3 {font-size:16px;line-height:1.65;letter-spacing:0}
+#hover-card #answer-context {font-size:11px;line-height:1.65;padding:8px 10px;margin-top:10px}
+#hover-card .answer-meta {display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;padding:10px 0;border:0}
+#hover-card .answer-meta span {font-size:11px;line-height:1.5;color:#8fa7bc}
+#hover-card .answer-meta a {margin-left:auto;font-size:11px;line-height:1.5;color:#b4d5ea}
+#hover-card .answer-tools {display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid #b4d1e61c;padding-top:5px}
+#hover-card .answer-navigation {gap:1px;padding:0;border:0}
+#hover-card .answer-navigation button {padding:5px;min-width:28px;min-height:32px;font-size:16px}
+#hover-card .answer-navigation span {font-size:11px;min-width:34px;text-align:center}
+#hover-card .answer-actions {gap:10px;margin:0}
+#hover-card .answer-actions button {padding:5px 0;min-height:32px;font-size:12px;color:#acc5d8}
+#hover-card .answer-actions #hover-debate {padding:5px 9px;color:#bcd4e5;background:#bdd7ea0b}
+#hover-card button:hover:not(:disabled) {color:#eef8ff;background:#bdd7ea16}
+#hover-card #relation-card {
+  position:static;
+  inset:auto;
+  transform:none;
+  width:auto;
+  max-height:none;
+  margin:10px 0 0;
+  padding:12px 0 0;
+  border:0;
+  border-top:1px solid #b4d1e624;
+  border-radius:0;
+  background:none;
+  box-shadow:none;
+  backdrop-filter:none;
+  animation:none;
+  overflow:visible;
+}
+#hover-card .relation-heading {display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12px;line-height:1.5;color:#b8cddb}
+#hover-card #relation-label {font-size:11px;color:#8fa8bd}
+#hover-card #relation-reason {display:block;-webkit-line-clamp:unset;overflow:visible;font-size:11px;line-height:1.6;color:#91aabd;margin:6px 0 10px}
+#hover-card #relation-choices {display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin:0}
+#hover-card #relation-choices button {min-height:38px;padding:8px 10px;text-align:center;font-size:13px;line-height:1.5;white-space:nowrap;border-radius:8px;letter-spacing:.1px}
+#hover-card [data-confirm-relation="similar"] {background:#a8dce31a;border-color:#a8dce35c;color:#d3eef0}
+#hover-card [data-confirm-relation="different"] {background:#bca4e310;border-color:#bca4e336;color:#d7cbea}
+#hover-card #relation-choices [data-confirm-relation="unrelated"] {padding-inline:2px;font-size:11px;border-color:transparent;background:none;color:#8fa7bc}
+#hover-card #relation-choices [aria-pressed="true"] {border-color:#c5e6f49c;background:#a6cde92b;color:#edf6ff}
+#hover-card #relation-choices [data-confirm-relation="different"][aria-pressed="true"] {border-color:#cdb2f0a0;background:#b799e426;color:#e6d9f9}
+@media(max-width:700px), (max-height:650px) {
+  #hover-card {padding:13px 16px 12px;border-radius:15px}
+  #hover-card>h2 {font-size:16px;margin:7px 0 10px;line-height:1.5}
+  #hover-card .answer-person {padding-bottom:9px}
+  #hover-card .answer-reading {font-size:14px;line-height:1.8;min-height:76px;max-height:180px;padding-top:10px}
+  #hover-card .answer-meta {padding:8px 0}
+  #hover-card #relation-card {margin-top:7px;padding-top:9px}
+  #hover-card #relation-reason {margin:4px 0 8px}
+}

@@ -14,7 +14,7 @@ export class PlanetAudio {
   const wind=c.createBufferSource();wind.buffer=this.noise;wind.loop=true;const filter=c.createBiquadFilter();filter.type='lowpass';filter.frequency.value=580;const gain=c.createGain();gain.gain.value=.19;wind.connect(filter);filter.connect(gain);gain.connect(this.ambient);wind.start();this.wind=wind;
   // Slowly beating open fifths; independent partials keep the bed spacious.
   this.drones=[];
-  [55,82.4069,110.13,164.81,220.2].forEach((hz,i)=>{const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=hz;g.gain.value=[.16,.08,.035,.016,.009][i];o.connect(g);g.connect(this.ambient);o.start();const lfo=c.createOscillator(),lg=c.createGain();lfo.frequency.value=.027+i*.007;lg.gain.value=g.gain.value*.24;lfo.connect(lg);lg.connect(g.gain);lfo.start();this.drones.push(o,lfo);});
+  [130.81,196,261.63,329.63,392].forEach((hz,i)=>{const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=hz;g.gain.value=[.035,.023,.012,.008,.004][i];o.connect(g);g.connect(this.ambient);o.start();const lfo=c.createOscillator(),lg=c.createGain();lfo.frequency.value=.027+i*.007;lg.gain.value=g.gain.value*.24;lfo.connect(lg);lg.connect(g.gain);lfo.start();this.drones.push(o,lfo);});
  }
  noiseBuffer(seconds,seed){const c=this.context,b=c.createBuffer(2,c.sampleRate*seconds,c.sampleRate);for(let channel=0;channel<2;channel++){const a=b.getChannelData(channel);let value=0;for(let i=0;i<a.length;i++){seed=(seed*1664525+1013904223)>>>0;value=.965*value+.035*((seed/4294967296)*2-1);const edge=Math.min(1,i/(c.sampleRate*.12),(a.length-1-i)/(c.sampleRate*.12));a[i]=value*edge;}}return b;}
  ramp(param,value,seconds=.5){const t=this.context.currentTime;if(param.cancelAndHoldAtTime)param.cancelAndHoldAtTime(t);else{const held=param.value;param.cancelScheduledValues(t);param.setValueAtTime(held,t);}param.setTargetAtTime(value,t,Math.max(.01,seconds/3));}
@@ -42,6 +42,7 @@ export class PlanetAudio {
   if(name==='enter'){this.tone(49,2,.5,0,'travel');this.tone(146.83,2.8,.14,-.3,'travel');}
   else if(name==='ring'){this.sweep(1.7);this.tone(65.4,1.6,.38,0,'travel');}
   else if(name==='land'){this.tone(130.81,2.7,.17,-.3);this.tone(196,3.2,.10,.3);}
+  else if(name==='step'){this.impact(.045*strength,0);}
   else if(name==='focus'){this.tone(392,.9,.13,-.2);this.tone(587.33,1.3,.045,.25);}
   else if(name==='save'){this.tone(261.63,1.3,.2,-.15);this.tone(392,1.8,.09,.15);this.tone(523.25,2.1,.03,.35);}
   else if(name==='pair'){

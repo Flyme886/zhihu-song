@@ -27,6 +27,8 @@ export function queryHistory(items,{query='',topicId='',order='newest',page=0,si
 export function parseRoute(hash,catalog){
  const ids=new Set(catalog.map(t=>t.id));let parts;try{parts=hash.replace(/^#\/?/,'').split('/').map(decodeURIComponent);}catch{return{view:'home'};}
  if(parts[0]==='world')return{view:'world',topicId:ids.has(parts[1])?parts[1]:null};
+ if(parts[0]==='planet'&&parts[1]==='story')return{view:'planet',storyId:parts[2]||'living-room'};
+ if(parts[0]==='planet'&&parts[1]==='map')return{view:'planet',overlay:'map'};
  if(parts[0]==='planet')return{view:'planet',section:SECTIONS[parts[1]]?parts[1]:null,itemId:parts[2]||null};
  return{view:'home'};
 }

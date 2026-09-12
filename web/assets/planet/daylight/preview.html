@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Daylight · original asset preview</title>
+<style>html,body{margin:0;height:100%;overflow:hidden;background:#e9e5d9;color:#32473d;font:14px system-ui}canvas{display:block}aside{position:fixed;top:24px;left:28px;z-index:2}h1{font:500 23px Georgia;margin:0 0 8px}p{margin:5px 0}select,button{margin:12px 5px 0 0;padding:7px 12px;border:1px solid #a7b4a6;background:#faf7ec;border-radius:20px;color:#32473d}footer{position:fixed;bottom:22px;left:28px;font-size:12px;color:#65746b}</style>
+<aside><h1>Daylight atelier</h1><p>Original traveler & park miniatures · Three.js r180</p><select id="clip"><option>idle</option><option>walk</option><option>run</option><option>sit</option><option>read</option></select><button id="view">Rear view</button><p id="status">Loading original GLB assets…</p></aside>
+<footer>Drag horizontally to orbit · Procedural geometry, no downloaded models or textures</footer>
+<script>window.addEventListener('error',e=>document.getElementById('status').textContent=e.message);window.addEventListener('unhandledrejection',e=>document.getElementById('status').textContent=String(e.reason));</script>
+<script type="module">
+import * as THREE from '../../../vendor/three/three.module.js';
+import {GLTFLoader} from '../../../vendor/three/addons/loaders/GLTFLoader.js';
+const scene=new THREE.Scene();scene.background=new THREE.Color('#e9e5d9');scene.fog=new THREE.Fog('#e9e5d9',12,25);
+const camera=new THREE.PerspectiveCamera(36,innerWidth/innerHeight,.01,100);camera.position.set(5,3.5,7);camera.lookAt(0,.85,0);
+const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.2;document.body.append(renderer.domElement);
+scene.add(new THREE.HemisphereLight('#fff5dc','#778876',2.5));const sun=new THREE.DirectionalLight('#fff3d6',3.5);sun.position.set(-3,7,5);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-6,right:6,top:6,bottom:-6,near:.1,far:20});sun.shadow.bias=-.0004;scene.add(sun);
+const fill=new THREE.DirectionalLight('#d3e7ed',.8);fill.position.set(4,2,-3);scene.add(fill);
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(200,200),new THREE.MeshStandardMaterial({color:'#d9dfc7',roughness:1}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;ground.position.y=-.002;scene.add(ground);
+const loader=new GLTFLoader();const [traveler,environment]=await Promise.all([loader.loadAsync('./traveler.glb'),loader.loadAsync('./environment.glb')]);
+const atlas=new THREE.Group();scene.add(atlas);traveler.scene.position.set(-1.75,0,.25);atlas.add(traveler.scene);
+const bench=environment.scene.getObjectByName('bench').clone(true);bench.position.set(.15,0,-.5);atlas.add(bench);
+const sign=environment.scene.getObjectByName('sign').clone(true);sign.position.set(1.55,0,-.75);atlas.add(sign);
+const plinth=environment.scene.getObjectByName('plinth').clone(true);plinth.position.set(2.17,0,.65);atlas.add(plinth);
+const bust=environment.scene.getObjectByName('bust').clone(true);bust.position.set(2.17,.708,.65);atlas.add(bust);
+atlas.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
+const mixer=new THREE.AnimationMixer(traveler.scene);let action;
+function play(name){action?.stop();action=mixer.clipAction(traveler.animations.find(c=>c.name===name));action.reset().play();document.getElementById('status').textContent=`${name} · ${traveler.animations.length} animation clips · 26 meshes`;}
+play('idle');document.getElementById('clip').onchange=e=>play(e.target.value);
+let a=.42;function orbit(){camera.position.set(Math.sin(a)*8.8,3.3,Math.cos(a)*8.8);camera.lookAt(.05,.85,0);}
+document.getElementById('view').onclick=()=>{a+=Math.PI;orbit();};let drag=false;renderer.domElement.onpointerdown=()=>drag=true;window.onpointerup=()=>drag=false;window.onpointermove=e=>{if(drag){a+=e.movementX*.006;orbit();}};
+const focus=new URLSearchParams(location.search).get('focus');if(focus==='bust'){camera.position.set(3.15,1.6,2.9);camera.lookAt(2.17,1.11,.65);}if(focus==='traveler'){camera.position.set(-.45,1.4,3.35);camera.lookAt(-1.75,.97,.25);}
+const clock=new THREE.Clock();renderer.setAnimationLoop(()=>{mixer.update(Math.min(clock.getDelta(),.05));renderer.render(scene,camera);});window.onresize=()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);};
+window.daylightPreview={loaded:true,traveler,environment,mixer,scene,camera,renderer,play,atlas};
+</script></html>

@@ -58,6 +58,19 @@ class AdapterTest(unittest.TestCase):
         finally:
             for instance in [provider,app]:instance.shutdown();instance.server_close()
 
+    def test_glb_is_served_only_from_public_daylight_assets(self):
+        app=ThreadingHTTPServer(('127.0.0.1',0),server.Handler)
+        threading.Thread(target=app.serve_forever,daemon=True).start()
+        url=f'http://127.0.0.1:{app.server_port}'
+        try:
+            response=urlopen(url+'/assets/planet/daylight/traveler.glb')
+            self.assertEqual(response.headers.get_content_type(), 'model/gltf-binary')
+            self.assertEqual(response.read()[:4], b'glTF')
+            for path in ['/traveler.glb','/assets/planet/daylight/%2e%2e/private.glb','/assets/planet/daylight/missing.glb']:
+                with self.assertRaises(HTTPError) as error:urlopen(url+path)
+                self.assertEqual(error.exception.code,404)
+        finally:app.shutdown();app.server_close()
+
     def test_auto_prefers_zhihu_and_does_not_fall_back_on_failure(self):
         app=ThreadingHTTPServer(('127.0.0.1',0),server.Handler)
         threading.Thread(target=app.serve_forever,daemon=True).start()

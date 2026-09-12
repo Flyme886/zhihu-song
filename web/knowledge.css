@@ -1,0 +1,12 @@
+/* The public knowledge canvas keeps its original dark universe. */
+body[data-view="world"] {color-scheme:dark;background:#03060b}
+body[data-view="world"] #app {background:#03060b}
+body[data-view="world"] #hover-card .answer-actions {gap:12px}
+body[data-view="world"] #hover-card .answer-actions button {min-height:36px}
+body[data-view="world"] #hover-pair[aria-pressed="true"] {color:#bbdfec}
+/* Keep the encounter card independent of the answer reading viewport. */
+body[data-view="world"] #app:has(#hover-card:not([hidden]))>#relation-card {display:none}
+@media(min-width:901px) {
+  body[data-view="world"] #topic-sidebar {transform:none}
+  body[data-view="world"] #sidebar-backdrop {display:none}
+}

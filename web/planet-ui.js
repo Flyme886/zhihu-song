@@ -2,6 +2,7 @@ import {renderSummary} from './discussion-summary.js';
 import {PlanetAudio} from './audio.js';
 import {SECTIONS,buildHistory,queryHistory,parseRoute,dateLabel} from './history.js';
 import {recordMarkdown} from './session.js';
+import {setupWander} from './wander-ui.js';
 const $=s=>document.querySelector(s);
 const element=(tag,text,cls)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;};
 const download=(text,name,type)=>{const url=URL.createObjectURL(new Blob([text],{type}));const a=element('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),2000);};
@@ -13,18 +14,19 @@ export function setupPlanet(api){
  api.store.preparePlanet();
  const shell=element('div',undefined,'planet-shell');shell.id='planet-shell';shell.innerHTML=`
  <div class="cinema-vignette" aria-hidden="true"></div><div id="atmosphere-veil" aria-hidden="true"></div>
- <header class="cosmic-header"><a class="cosmic-brand" href="#/home" aria-label="思想引力场首页"><span class="orbit-symbol" aria-hidden="true"></span><span>思想引力场<small>GRAVITY OF MINDS</small></span></a><div class="cosmic-navigation"><button id="cosmic-explore">探索观点 <span>↗</span></button><button id="cosmic-my-planet">我的星球 <span>◌</span></button></div></header>
- <section id="cosmic-home" aria-label="我的星球，宇宙远景"><div class="home-copy"><p class="cosmic-kicker"><span></span> A WORLD THAT IS YOURS</p><h1>每一个想法，<br>都有引力。</h1><p class="home-description">你留下的观点，走过的分歧，<br>慢慢长成一颗属于自己的星球。</p><div class="home-actions"><button id="home-explore" class="cosmic-primary"><span>探索一个问题</span><span class="arrow-orbit" aria-hidden="true">↗</span></button><button id="enter-planet" class="home-secondary"><span>进入我的星球</span><span aria-hidden="true">↗</span></button></div><p class="home-path">读一个观点 · 遇见另一种看法 · 留下你的想法</p><p id="home-memory" class="home-memory">从第一个想法开始。</p></div><button id="planet-orb-hit" aria-label="点击星球，进入我的星球"><span class="orb-caption"><i></i>我的星球<small>MY LITTLE UNIVERSE</small></span></button><div class="home-bottom"><span>让思考留下轨迹</span><span>01 <i></i> YOUR OWN ORBIT</span></div></section>
+ <header class="cosmic-header"><a class="cosmic-brand" href="#/home" aria-label="思想引力场首页"><span class="orbit-symbol" aria-hidden="true"></span><span>思想引力场<small>让想法，有处安放</small></span></a><div class="cosmic-navigation"><button id="cosmic-explore">知识星球 <span>↗</span></button><button id="cosmic-my-planet">我的星球 <span>◌</span></button></div></header>
+ <section id="cosmic-home" aria-label="我的星球，花田全景"><div class="home-copy"><p class="cosmic-kicker"><span></span> 每一段来路，都值得记得</p><h1>在想法<br>生长的地方。</h1><p class="home-description">沿着花田，遇见从前的自己。</p><div class="home-actions"><button id="home-explore" class="cosmic-primary"><span>进入知识星球</span><span class="arrow-orbit" aria-hidden="true">↗</span></button><button id="enter-planet" class="home-secondary"><span>进入我的星球</span><span aria-hidden="true">↗</span></button></div><button id="home-story" class="home-story"><span>故事演示</span> 我想留下的，其实是什么？ <b>↗</b></button><p id="home-memory" class="home-memory">从第一个想法开始。</p></div><button id="planet-orb-hit" aria-label="点击星球，进入我的星球"><span class="orb-caption"><i></i>我的星球<small>MY LITTLE UNIVERSE</small></span></button><div class="home-bottom"><span>花田 · 来路 · 另一种可能</span><span>拖动视角，慢慢探索</span></div></section>
  <section id="planet-travel" hidden aria-label="正在进入星球"><div class="travel-caption"><span id="travel-step">离开喧嚣</span><small id="travel-description">正在靠近，你留下的世界。</small><div class="travel-track"><i></i></div></div><button id="skip-travel">跳过旅程 ↗</button></section>
- <section id="planet-surface" hidden aria-label="我的星球地表"><div class="surface-intro"><p class="cosmic-kicker">WELCOME HOME</p><h1>这里，藏着你的来路。</h1><p id="surface-subtitle">想法会改变，走过的路会留下。</p></div><div class="landmarks" aria-label="记忆地标"><button data-landmark="opinions"><span class="beacon-dot"></span><small>01</small><strong>我的观点</strong><em>从前与现在</em><b>0</b></button><button data-landmark="cases"><span class="beacon-dot"></span><small>02</small><strong>参与过的案例</strong><em>每一次认真想过</em><b>0</b></button><button data-landmark="records"><span class="beacon-dot"></span><small>03</small><strong>讨论记录</strong><em>让不同留下回声</em><b>0</b></button></div><div class="surface-footer"><button id="leave-planet">↖ 返回宇宙</button><p id="surface-hint">选择一束光，回到一个想法。</p><button id="planet-new-thought">写下新的想法 ＋</button></div><nav class="memory-nav" aria-label="个人历史导航"><button data-section="opinions">我的观点</button><button data-section="cases">参与过的案例</button><button data-section="records">讨论记录</button></nav></section>
+ <section id="planet-surface" hidden aria-label="我的星球地表"><div class="surface-intro"><p class="cosmic-kicker"></p><h1>我的星球</h1><p id="surface-subtitle">想法会改变，走过的路会留下。</p></div><div class="landmarks" aria-label="记忆地标"><button data-landmark="opinions"><span class="beacon-dot"></span><small>01</small><strong>我的观点</strong><em>从前与现在</em><b>0</b></button><button data-landmark="cases"><span class="beacon-dot"></span><small>02</small><strong>参与过的案例</strong><em>每一次认真想过</em><b>0</b></button><button data-landmark="records"><span class="beacon-dot"></span><small>03</small><strong>讨论记录</strong><em>让不同留下回声</em><b>0</b></button></div><div class="surface-footer"><button id="leave-planet">↖ 返回知识星球</button><p id="surface-hint">选择一束光，回到一个想法。</p><button id="planet-new-thought">写下新的想法 ＋</button></div><nav class="memory-nav" aria-label="个人历史导航"><button data-section="opinions">我的观点</button><button data-section="cases">参与过的案例</button><button data-section="records">讨论记录</button></nav></section>
  <aside id="memory-panel" hidden aria-label="个人历史阅读"><div class="memory-panel-top"><span id="memory-eyebrow">MEMORY ARCHIVE</span><button id="close-memory" aria-label="关闭历史阅读">×</button></div><h2 id="memory-title"></h2><div id="memory-tools"><label class="memory-search">⌕ <input id="memory-search" type="search" placeholder="寻找一个想法…" aria-label="搜索个人历史"></label><div class="memory-filters"><select id="memory-topic" aria-label="按话题筛选"><option value="">全部话题</option></select><select id="memory-order" aria-label="排序"><option value="newest">最近在前</option><option value="oldest">最早在前</option></select></div></div><div id="memory-content"></div><div id="memory-pagination"></div><div class="memory-bottom"><span>仅保存在这台设备</span><button id="backup-memory">备份全部 .json ↗</button></div></aside>
  <div id="planet-toast" role="status" hidden></div>
  <div class="sound-controls"><button id="sound-toggle" aria-label="关闭声音" aria-pressed="true"><span class="sound-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span id="sound-label">声音待开启</span></button><button id="sound-settings" aria-label="声音与画面设置" aria-expanded="false">⌘</button></div>
- <section id="sound-panel" aria-label="声音与画面设置" hidden><div class="sound-panel-title">留一点安静<button id="close-sound" aria-label="关闭声音设置">×</button></div><label>总音量 <input id="sound-master" type="range" min="0" max="100" value="30"></label><label>环境氛围 <input id="sound-ambient" type="range" min="0" max="100" value="65"></label><label>穿越音效 <input id="sound-transitions" type="range" min="0" max="100" value="60"></label><label>交互音效 <input id="sound-effects" type="range" min="0" max="100" value="75"></label><button id="cosmic-pause" aria-pressed="false">暂停景观动画</button><p>声音跟随你的动作。阅读时，环境会安静下来。</p></section>`;
+ <section id="sound-panel" aria-label="声音与画面设置" hidden><div class="sound-panel-title">留一点安静<button id="close-sound" aria-label="关闭声音设置">×</button></div><label>总音量 <input id="sound-master" type="range" min="0" max="100" value="30"></label><label>环境氛围 <input id="sound-ambient" type="range" min="0" max="100" value="65"></label><label>穿越音效 <input id="sound-transitions" type="range" min="0" max="100" value="60"></label><label>交互音效 <input id="sound-effects" type="range" min="0" max="100" value="75"></label><label>画面细节 <select id="world-quality" aria-label="画面细节"><option value="auto">自动</option><option value="high">丰富</option><option value="low">轻盈</option></select></label><button id="cosmic-pause" aria-pressed="false">暂停景观动画</button><p>声音跟随你的动作。阅读时，环境会安静下来。</p></section>`;
  shell.append($('#fallback'),$('#announcer'));document.body.append(shell);
  listen(document,'pointerdown',e=>document.body.dataset.pointer=e.pointerType,{passive:true});listen(document,'keydown',e=>{if(e.key==='Tab')document.body.dataset.pointer='keyboard';});
  api.renderer()?.setCounts({opinions:0,cases:0,records:0});
  const audio=new PlanetAudio(api.store.setting('audio'),settings=>api.store.setting('audio',settings));
+ let wander=null;
  let view='home',route={view:'home'},travel=0,travelDuration=3,ringPlayed=false,lastRoute='',routeToken=0,returnView='home',focusWait=0,panelReady=false,paused=matchMedia('(prefers-reduced-motion: reduce)').matches,reduced=paused,index=buildHistory(api.store.data,api.catalog),filters={query:'',topicId:'',order:'newest',page:0},toastTimer,lastDeleted=null;
  const sections=Object.keys(SECTIONS),landmarks=[...document.querySelectorAll('[data-landmark]')];
  const motionMedia=matchMedia('(prefers-reduced-motion: reduce)');listen(motionMedia,'change',e=>{reduced=e.matches;if(reduced){paused=true;if(view==='travel')finishTravel();}updatePause();});
@@ -32,30 +34,32 @@ export function setupPlanet(api){
  function toast(message,action){const box=$('#planet-toast');box.replaceChildren(element('span',message));if(action){const b=element('button',action.label);b.addEventListener('click',()=>{box.hidden=true;action.run();});box.append(b);}box.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>box.hidden=true,action?8000:3400);}
  function applyView(next){
   view=next;document.body.dataset.view=next;$('#cosmic-home').hidden=next!=='home';$('#planet-travel').hidden=next!=='travel';$('#planet-surface').hidden=next!=='planet';
-  const world=next==='world';$('#topic-sidebar').inert=!world||innerWidth<=900;$('#app').inert=!world;
+  const world=next==='world';$('#topic-sidebar').inert=!world||(innerWidth<=900&&document.body.dataset.sidebar!=='open');document.querySelector('meta[name="theme-color"]').content=world?'#03060b':'#e7ece1';$('#app').inert=false;
+  $('#universe').setAttribute('aria-label',world?'由晶莹粒子构成的思想星球，自由漂浮在画布中':'我的星球，花田、旅人与可回看的记忆');
   for(const child of $('#app').children)if(child.id!=='universe'){child.inert=!world;child.setAttribute('aria-hidden',String(!world));}
-  if(!world){document.querySelectorAll('dialog[open]').forEach(d=>d.close());$('#discussion').hidden=true;$('#app').dataset.discussing='false';document.body.dataset.sidebar='closed';$('#sidebar-backdrop').hidden=true;}
+  if(!world){document.querySelectorAll('dialog[open]:not(.story-overlay):not(#wander-map)').forEach(d=>d.close());$('#discussion').hidden=true;$('#app').dataset.discussing='false';document.body.dataset.sidebar='closed';$('#sidebar-backdrop').hidden=true;}
   if(next!=='planet')closePanel(false);if(next==='planet')updateLandmarkBounds();api.motion?.clear();audio.setScene(next);updateSound();
  }
  function navigate(path,replace=false){const hash='#'+path;if(location.hash!==hash){history[replace?'replaceState':'pushState']({},'',hash);}return handleRoute();}
  async function handleRoute(){
   const signature=location.hash;if(signature===lastRoute)return;lastRoute=signature;const token=++routeToken;const next=parseRoute(signature,api.catalog);route=next;
   if(next.view==='world'){
-   api.leaveWorld();applyView('world');audio.cancelTravel();await api.loadTopic(next.topicId||api.store.data.lastTopic);if(token!==routeToken)return;$('#open-topics').focus();
+   api.leaveWorld();applyView('world');audio.cancelTravel();await api.loadTopic(next.topicId||api.store.data.lastTopic);if(token!==routeToken)return;$(innerWidth>900?'#topic-search':'#open-topics').focus();
   }else if(next.view==='planet'){
    if(view==='world'){returnView='world';api.leaveWorld();}
    if(view!=='planet'&&view!=='travel'){applyView('planet');travel=1;}
    if(view==='travel'&&next.section)finishTravel();
    if(next.section)focusSection(next.section,next.itemId);else closePanel(true);
   }else{if(view==='world')api.leaveWorld();audio.cancelCues();applyView('home');$(index.records.length?'#enter-planet':'#home-explore').focus();}
+  wander?.route(next);
  }
  async function enter(){
   if(view==='travel')return;audio.cancelCues();audio.unlock().then(()=>{updateSound();if(view==='travel')audio.cue('enter');});if(view==='planet'){navigate('/planet');return;}
   returnView=view==='world'?'world':'home';if(view==='world')api.leaveWorld();
-  api.renderer()?.setFocus(null);travel=0;ringPlayed=false;travelDuration=reduced?.2:api.store.setting('visitedPlanet')?1.4:3;
+  api.renderer()?.setFocus(null);travel=0;ringPlayed=false;travelDuration=reduced?.15:api.store.setting('visitedPlanet')?.55:2;
   route={view:'planet'};lastRoute='#/planet';history.pushState({},'','#/planet');applyView('travel');audio.cue('enter');$('#skip-travel').focus();announce('正在进入我的星球，可以跳过旅程。');
  }
- function finishTravel(){travel=1;audio.cancelTravel();applyView('planet');api.store.setting('visitedPlanet',true);audio.cue('land');announce('已抵达我的星球。选择我的观点、参与过的案例或讨论记录。');landmarks[0].focus({preventScroll:true});}
+ function finishTravel(){travel=1;audio.cancelTravel();applyView('planet');api.store.setting('visitedPlanet',true);audio.cue('land');announce('已抵达我的星球。使用方向键走动，靠近记忆后按 E 查看。');$('#wander-map-button')?.focus({preventScroll:true});}
  function focusSection(section,itemId){
   route={view:'planet',section,itemId};api.renderer()?.setFocus(section);focusWait=reduced?.01:.45;panelReady=false;$('#memory-panel').hidden=true;$('#planet-surface').dataset.focused='true';document.body.dataset.reading='false';audio.cue('focus');sections.forEach(s=>document.querySelector(`[data-section="${s}"]`).setAttribute('aria-current',s===section?'page':'false'));
  }
@@ -126,6 +130,7 @@ export function setupPlanet(api){
    if(token===routeToken&&view==='world'&&!document.hidden&&$('#app').dataset.stage==='world'&&performance.now()-at<600)audio.cue(kind,detail);
   });
  }
+ listen($('#world-quality'),'change',e=>{api.renderer()?.setQuality(e.target.value);api.store.setting('worldQuality',e.target.value);});
  $('#sound-settings').addEventListener('click',()=>{$('#sound-panel').hidden=!$('#sound-panel').hidden;$('#sound-settings').setAttribute('aria-expanded',String(!$('#sound-panel').hidden));});$('#close-sound').addEventListener('click',()=>{$('#sound-panel').hidden=true;$('#sound-settings').setAttribute('aria-expanded','false');$('#sound-settings').focus();});
  for(const name of ['master','ambient','effects','transitions']){const input=$('#sound-'+name);input.value=audio.settings[name]*100;input.addEventListener('input',()=>{audio.update({[name]:input.value/100});audio.unlock().then(updateSound);updateSound();});}
  function updatePause(){api.setPaused(paused);$('#cosmic-pause').textContent=paused?'播放景观动画':'暂停景观动画';$('#cosmic-pause').setAttribute('aria-pressed',String(paused));document.body.dataset.cosmicPaused=String(paused);}
@@ -136,21 +141,21 @@ export function setupPlanet(api){
  listen(window,'popstate',handleRoute);listen(window,'hashchange',handleRoute);
  listen(document,'keydown',e=>{if(e.key!=='Escape')return;if(!$('#sound-panel').hidden){$('#close-sound').click();return;}if(view==='travel')finishTravel();else if(view==='planet'&&route.section)closeReading();});
  return {
-  async init(){if(!location.hash){const old=new URL(location.href).searchParams.get('topic');history.replaceState({},'',old?'#/world/'+encodeURIComponent(old):'#/home');}await handleRoute();},
+  async init(){const quality=api.store.setting('worldQuality')||'auto';$('#world-quality').value=quality;api.renderer()?.setQuality(quality);wander=setupWander({api,audio,navigate,view:()=>view,toast});$('#home-story').addEventListener('click',()=>{audio.unlock();wander.start();});if(!location.hash){const old=new URL(location.href).searchParams.get('topic');history.replaceState({},'',old?'#/world/'+encodeURIComponent(old):'#/home');}await handleRoute();},
   enter,navigate,interaction,showWorld(id){route={view:'world',topicId:id};lastRoute='#/world/'+id;audio.cancelTravel();applyView('world');},
   onRecordSaved(record){updateIndex();if(api.store.failed)return;const token=routeToken;Promise.resolve(saveJourney??true).then(completed=>{if(!completed||token!==routeToken||view!=='world'||api.store.failed)return;if(!api.store.setting('firstRecordWelcome')&&index.records.length===1){firstSavedRecord=record;api.store.setting('firstRecordWelcome',true);$('#first-record-dialog').showModal();}});},
   onSave({kind='opinion',origin}={}){
    updateIndex();if(api.store.failed){toast('修改暂留在本页，请导出备份。');return;}
-   const action={label:'去我的星球 ↗',run:()=>enter()};
+   const latest=(kind==='record'?index.records:index.opinions).filter(i=>i.topicId===api.store.data.lastTopic).at(-1);const action={label:'回看刚才',run:()=>latest?navigate('/planet/'+(kind==='record'?'records':'opinions')+'/'+encodeURIComponent(latest.id)):enter()};
    if(kind==='record'){
     const target=(view==='world'?$('#profile'):$('#cosmic-my-planet')),rect=target?.getBoundingClientRect();
     const land=()=>{api.renderer()?.burst();api.motion?.pulse(target);audio.cue('save');toast('这次相遇，已成为你的一部分。',action);};
     if(origin&&rect&&api.motion)saveJourney=api.motion.stream({x:origin.left+origin.width/2,y:origin.top+origin.height/2},{x:rect.left+rect.width/2,y:rect.top+rect.height/2},{color:'#efce94',duration:1050,count:16,land});else{land();saveJourney=Promise.resolve(true);}
    }else {api.renderer()?.burst();audio.cue('save');toast(index.opinions.length===1?'第一束光，已经留在你的星球。':'新的想法，已留在你的星球。',action);}
   },
-  frame(dt){if(view==='world')return false;if(view==='travel'){travel=Math.min(1,travel+dt/travelDuration);if(!ringPlayed&&travel>=.54){ringPlayed=true;if(!reduced)audio.cue('ring');}const step=travel<.17?0:travel<.54?1:travel<.76?2:3;$('#travel-step').textContent=['离开喧嚣','循着思想的轨迹','穿过一片微光','回到你的世界'][step];$('#planet-travel').style.setProperty('--progress',travel);$('#atmosphere-veil').style.background=reduced?'#03060b':'';$('#atmosphere-veil').style.opacity=String(reduced?1-travel:Math.max(0,1-Math.abs(travel-.76)/.10)*.9);if(travel>=1)finishTravel();}else $('#atmosphere-veil').style.opacity='0';
+  frame(dt){wander?.frame(dt);if(view==='world')return false;if(view==='travel'){travel=Math.min(1,travel+dt/travelDuration);if(!ringPlayed&&travel>=.54){ringPlayed=true;if(!reduced)audio.cue('ring');}const step=travel<.17?0:travel<.54?1:travel<.76?2:3;$('#travel-step').textContent=['离开喧嚣','循着思想的轨迹','穿过一片微光','回到你的世界'][step];$('#planet-travel').style.setProperty('--progress',travel);$('#atmosphere-veil').style.background=reduced?'#f4eddd':'';$('#atmosphere-veil').style.opacity=String(reduced?1-travel:Math.max(0,1-Math.abs(travel-.76)/.10)*.9);if(travel>=1)finishTravel();}else $('#atmosphere-veil').style.opacity='0';
    api.renderer()?.frame(view==='travel'&&reduced?'planet':view,travel,dt,paused||reduced,reduced);if(view==='home'){const hit=api.renderer()?.projectPlanet();if(hit){const b=$('#planet-orb-hit');b.style.left=(hit.x-hit.r)+'px';b.style.top=(hit.y-hit.r)+'px';b.style.width=2*hit.r+'px';b.style.height=2*hit.r+'px';}}if(view==='planet'){if(focusWait>0){focusWait-=dt;if(focusWait<=0)openPanel();}const projected=api.renderer()?.projectLandmarks();landmarks.forEach((b,i)=>{const p=projected?.[i];if(p){const left=p.x.toFixed(1)+'px',top=p.y.toFixed(1)+'px';if(b.style.left!==left)b.style.left=left;if(b.style.top!==top)b.style.top=top;}else{b.style.left='';b.style.top='';}});}return true;},
-  debug(){return{view,route,travel,focusRemaining:focusWait,audio:audio.debug(),renderer:api.renderer()?.getStats(),history:Object.fromEntries(sections.map(s=>[s,index[s].length]))};},
-  leave(){return navigate(returnView==='world'?'/world/'+api.store.data.lastTopic:'/home');},focusLandmark(section){if(SECTIONS[section])return navigate('/planet/'+section);},skip(){if(view==='travel')finishTravel();},setPaused(value){paused=value;updatePause();},dispose(){api.stop();lifetime.abort();unsubscribe();clearTimeout(toastTimer);audio.dispose();api.renderer()?.dispose();shell.remove();},get view(){return view;},audio
+  debug(){return{view,route,travel,focusRemaining:focusWait,audio:audio.debug(),wander:wander?.debug(),renderer:api.renderer()?.getStats(),history:Object.fromEntries(sections.map(s=>[s,index[s].length]))};},
+  leave(){return navigate(returnView==='world'?'/world/'+api.store.data.lastTopic:'/home');},focusLandmark(section){if(SECTIONS[section])return navigate('/planet/'+section);},skip(){if(view==='travel')finishTravel();},setPaused(value){paused=value;updatePause();},dispose(){api.stop();wander?.dispose();lifetime.abort();unsubscribe();clearTimeout(toastTimer);audio.dispose();api.renderer()?.dispose();shell.remove();},get view(){return view;},audio
  };
 }

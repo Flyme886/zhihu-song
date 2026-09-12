@@ -71,12 +71,11 @@ test('repulsion compression and rebound are visual only and expire in 780ms',()=
 
 test('reduced motion removes a save pulse immediately and does not replay it later',()=>{
   const renderer=surface(914,900,[150,190,150]);
-  const uniformMesh=()=>({material:{uniforms:{time:{value:0}}}});
-  Object.assign(renderer,{time:4,focus:0,targetFocus:0,pulse:1,globe:uniformMesh(),ring:uniformMesh(),skyRing:uniformMesh(),stars:{rotation:{}},surfaceStars:{rotation:{}},surface:{},renderer:{render(){}},recordFrame(){}});
-  renderer.memories.material={opacity:1,size:.105};
+  const calls=[];
+  Object.assign(renderer,{time:4,pulse:1,wander:{update(...args){calls.push(args);}},renderer:{setClearColor(){}},recordFrame(){}});
   renderer.frame('planet',1,1/60,true,true);
   assert.equal(renderer.pulse,0);assert.equal(renderer.time,4);
-  assert.equal(renderer.memories.material.opacity,.55);assert.equal(renderer.memories.material.size,.045);
+  assert.deepEqual(calls[0],['planet',1,1/60,true,true]);
   renderer.frame('planet',1,1/60,false,false);
-  assert.equal(renderer.pulse,0);assert.equal(renderer.memories.material.size,.045);
+  assert.equal(renderer.pulse,0);assert.deepEqual(calls[1],['planet',1,1/60,false,false]);
 });
