@@ -4,50 +4,68 @@ const el=(tag,text,cls)=>{const n=document.createElement(tag);if(text!==undefine
 
 export class ThoughtAdvice{
  constructor(api){
-  this.api=api;this.version=0;this.result=null;
+  this.api=api;this.version=0;this.result=null;this.attempted=new Set();
   $('#open-advice').addEventListener('click',()=>{$('#advice-dialog').showModal();this.render();});
   $('#close-advice').addEventListener('click',()=>$('#advice-dialog').close());
   $('#analyze-thought').addEventListener('click',()=>this.analyze());
-  $('#cancel-analysis').addEventListener('click',()=>{this.cancel();this.status('分析已停止，你仍可以自行判断关系。');});
+  $('#cancel-analysis').addEventListener('click',()=>{this.cancel();this.status('分析已停止，已有判断保留，可稍后重试。');});
  }
- candidates(){return this.api.nodes.filter(n=>n.id!=='me'&&n.body).slice(0,6);}
+ candidates(){return this.api.nodes.filter(n=>n.id!=='me'&&n.body).slice(0,8);}
  status(text){$('#advice-status').textContent=text;$('#advice-badge').textContent=this.busy?'正在理解…':this.result?'查看关系建议':'找值得聊的观点';}
  cancel(){this.version++;this.controller?.abort();this.busy=false;$('#analyze-thought').disabled=false;$('#cancel-analysis').hidden=true;}
  clear(){
-  this.cancel();this.result=null;this.api.relations.suggestions=new Map();this.api.relations.cardKey='';
+  this.cancel();this.result=null;this.attempted.clear();this.api.relations.suggestions=new Map();this.api.relations.cancelEncounter(false);
   for(const n of this.api.nodes){delete n.analysis;if(n.originalTitle)n.title=n.originalTitle;if(n.originalClaim)n.claim=n.originalClaim;this.label(n);}
-  this.status(this.api.me.body?'AI 可以比较你的观点与本题材料，关系由你确认。':'先写下自己的想法，再看看哪些观点值得接近。');this.render();
+  this.status(this.api.me.body?'AI 比较观点后，靠近停留即可自动连接或进入辩论。':'先写下自己的想法，再看看哪些观点值得接近。');this.render();
  }
  label(n){if(n.id==='me')return;if(n.label)n.label.textContent=n.title;n.el?.setAttribute('aria-label',n.title+'，查看观点');}
  async restore(saved){
   this.clear();const version=this.version;if(!saved||!this.api.me.body)return;
   const key=await analysisKey(this.api.topic(),this.api.me,this.candidates());
   if(version!==this.version)return;
-  if(key===saved.key){this.apply(saved);this.status('已恢复这份观点与材料对应的建议，本次没有调用 AI。');}
+  const legacyKey=key===saved.key?key:await analysisKey(this.api.topic(),this.api.me,this.candidates().slice(0,6));
+  if(version!==this.version)return;
+  if(key===saved.key||legacyKey===saved.key){this.apply({...saved,key});this.status('已恢复观点关系，靠近并停留 1.5 秒即可相遇。');}
  }
  apply(result){
   this.result=result;this.api.me.analysis=result.me;
-  this.api.relations.suggestions=new Map(result.candidates.map(n=>[n.id,n]));this.api.relations.cardKey='';
+  this.api.relations.suggestions=new Map(result.candidates.map(n=>[n.id,n]));this.api.relations.cancelEncounter(false);
   for(const item of result.candidates){const n=this.api.nodes.find(n=>n.id===item.id);if(!n)continue;n.originalTitle??=n.title;n.originalClaim??=n.claim;n.analysis=item;n.title=item.title;n.claim=item.claim;this.label(n);}
+  if(this.api.relations.partner)$('#pair-name').textContent=this.api.relations.partner.title;
   this.api.relations.refreshPicker();this.render();this.api.updated?.();
  }
- async analyze(){
+ ensure(node){
+  if(this.busy||this.attempted.has(node.id)||this.api.relations.suggestions.has(node.id))return;
+  return this.analyze({missingOnly:true});
+ }
+ async analyze({missingOnly=false}={}){
   if(this.busy)return;
   if(!this.api.me.body){this.status('先写下自己的想法，再让 AI 比较。');$('#advice-dialog').close();$('#compose').click();return;}
-  const candidates=this.candidates();if(!candidates.length){this.status('本题还没有可供比较的材料。');return;}
+  const allCandidates=this.candidates(),candidates=missingOnly?allCandidates.filter(n=>!this.api.relations.suggestions.has(n.id)):allCandidates;if(!candidates.length){this.status('本题还没有可供比较的材料。');return;}
   this.cancel();const version=this.version,topic=this.api.topic(),me=material(this.api.me),snapshot=candidates.map(material);
+  candidates.forEach(n=>this.attempted.add(n.id));
   this.busy=true;this.controller=new AbortController();const controller=this.controller,signal=controller.signal;
   $('#analyze-thought').disabled=true;$('#cancel-analysis').hidden=false;this.status('正在阅读你的条件与本题材料…');
   const timeout=setTimeout(()=>controller.abort(),65000);
   try{
-   const key=await analysisKey(topic,me,snapshot);
-   const data=await taskRequest('/api/thought/analyze',{topicId:topic.id,me,candidates:snapshot},signal);
+   const key=await analysisKey(topic,me,allCandidates);
+   // Keep the server's six-material limit; compare every displayed sphere in batches.
+   const analyzed=[];let data;
+   for(let i=0;i<snapshot.length;i+=6){
+    data=await taskRequest('/api/thought/analyze',{topicId:topic.id,me,candidates:snapshot.slice(i,i+6)},signal);
+    if(signal.aborted||version!==this.version)return;
+    if(!data.me||!Array.isArray(data.candidates))throw Error('分析结果格式不完整');
+    analyzed.push(...data.candidates);
+   }
+   const merged=new Map(missingOnly?(this.result?.candidates||[]).map(n=>[n.id,n]):[]);
+   analyzed.forEach(n=>merged.set(n.id,n));
+   data={...data,candidates:[...merged.values()]};
    if(signal.aborted||version!==this.version)return;
    if(key!==await analysisKey(this.api.topic(),this.api.me,this.candidates())||version!==this.version)return;
    if(!data.me||!Array.isArray(data.candidates))throw Error('分析结果格式不完整');
    this.apply({...data,key});this.api.store.update(topic.id,{analysis:this.result});
-   this.status(`已比较 ${data.candidates.length} 条材料。建议可查看、确认，也可纠正。`);
-   $('#world-mode').textContent='已找到关系建议 · 查看理由后，再决定怎样相遇';
+   this.status(`已比较 ${data.candidates.length} 条材料。靠近停留即可相遇，判断依据可查看和纠正。`);
+   $('#world-mode').textContent='靠近并停留 1.5 秒 · 相近连接，有分歧就聊聊';
   }catch(error){if(version===this.version)this.status(signal.aborted?'分析等待已结束，原观点保留，可手动重试。':error.message);}
   finally{clearTimeout(timeout);if(version===this.version){this.busy=false;$('#analyze-thought').disabled=false;$('#cancel-analysis').hidden=true;$('#advice-badge').textContent=this.result?'查看关系建议':'重新分析关系';}}
  }

@@ -2,7 +2,7 @@ import {gap} from './relations.js';
 
 const TAU = Math.PI * 2;
 const clamp = (v, lo = 0, hi = 1) => Math.max(lo, Math.min(hi, v));
-const duration = {pair: .84, unpair: .72, repel: .78};
+const duration = {pair: 1.65, unpair: .9, repel: 1.25};
 const smooth = v => {v=clamp(v);return v*v*(3-2*v);};
 
 // Transient feedback owns no relationship or physics state. Node references keep
@@ -55,7 +55,7 @@ export class RelationshipEffects {
         ? -Math.sin(Math.PI*clamp(p/.26))*.52+Math.sin(Math.PI*clamp((p-.26)/.74))*(1-p)*.9
         : Math.sin(Math.PI*p)*(1-p)) * e.strength;
     }
-    return {scale: 1 + clamp(pulse,-.7,1) * .045, glow: 1 + Math.max(0,Math.min(pulse,1)) * 1.4};
+    return {scale: 1 + clamp(pulse,-.7,1) * .12, glow: 1 + Math.max(0,Math.min(pulse,1)) * 2.6};
   }
   draw(ctx, ends, scale) {
     for (const e of this.bursts) {
@@ -83,7 +83,7 @@ export class RelationshipEffects {
           const span=Math.hypot(edge.x2-edge.x1,edge.y2-edge.y1)*.5*build;
           ctx.strokeStyle=`rgba(210,243,252,${shine*.48})`;ctx.lineWidth=1.1*unit;
           ctx.beginPath();ctx.moveTo(x-edge.dx*span,y-edge.dy*span);ctx.lineTo(x+edge.dx*span,y+edge.dy*span);ctx.stroke();
-          this.ring(ctx,x,y,3+(p-.30)*21*unit,`rgba(230,221,194,${shine*.35})`);
+          this.ring(ctx,x,y,3+(p-.30)*74*unit,`rgba(230,221,194,${shine*.55})`);
         }
       } else if (e.kind === 'unpair') {
         // The bridge breaks into two short trails that return to their planets.
@@ -101,7 +101,7 @@ export class RelationshipEffects {
         // the collision axis. No full-screen rings or displacement of hit areas.
         for(const [node,theta] of [[e.a,angle],[e.b,angle+Math.PI]]){
           for(let i=0;i<2;i++){
-            const travel=release*(20+i*8)*unit,compression=Math.sin(Math.PI*clamp(p/.24))*3*unit;
+            const travel=release*(42+i*18)*unit,compression=Math.sin(Math.PI*clamp(p/.24))*8*unit;
             ctx.strokeStyle=`rgba(198,201,236,${fade*(.52-i*.17)})`;
             ctx.beginPath();ctx.arc(node.sx,node.sy,Math.max(1,node.sr+3+travel-compression),theta-.44+release*.10,theta+.44-release*.10);ctx.stroke();
           }

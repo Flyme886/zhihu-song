@@ -2,8 +2,10 @@ import {demoTurn,participantsValid} from './agent-turns.js';
 import {snapshotDiscussion,snapshotNode} from './session.js';
 import {DiscussionSummary} from './discussion-summary.js';
 import {companionForDiscussion,material} from './thought-client.js';
-import {relationFor, nearestEncounter, followPair, separate} from './relations.js';
+import {relationFor, nearestEncounter, followPair, separate, gap} from './relations.js';
 import {RelationshipEffects} from './relationship-effects.js';
+import {PairOrbit,pairOffset} from './orbital-motion.js';
+import {EncounterDwell} from './encounter-dwell.js';
 
 const $ = selector => document.querySelector(selector);
 const label = {similar: '观点相近', different: '存在分歧', unrelated: '暂不相关', unknown: '关系待确认'};
@@ -17,6 +19,7 @@ export class Relationships {
     this.demo = false;
     this.partner = null;
     this.candidate = null;
+    this.dwell = new EncounterDwell();
     this.dismissed = null;
     this.velocity = {x: 0, y: 0};
     this.offset = {x: 200, y: 0};
@@ -48,11 +51,6 @@ export class Relationships {
       $('#auto-turn').textContent=this.discussion.auto?'暂停对谈':'自动对谈';
       clearTimeout(this.agentTimer);if(this.discussion.auto)this.nextTurn();
     });
-    for(const button of document.querySelectorAll('[data-confirm-relation]')) button.addEventListener('click',()=>this.confirmRelation(button.dataset.confirmRelation,this.cardNode));
-    $('#hover-pair').addEventListener('click',()=>this.confirmHover('similar'));
-    $('#relation-action').addEventListener('click',()=>this.act({node:this.cardNode}));
-    $('#dismiss-relation').addEventListener('click',()=>{this.dismissed=this.cardNode;this.refreshCard();});
-    $('#relation-edit').addEventListener('click',()=>{if(this.cardNode)this.api.detail(this.cardNode);});
     $('#unlink').addEventListener('click', () => this.unlink());
     $('#close-discussion').addEventListener('click', () => this.closeDiscussion());
     $('#next-turn').addEventListener('click', () => this.nextTurn());
@@ -64,6 +62,7 @@ export class Relationships {
       this.stopAgent();
       this.discussion.additions.push(value);
       this.addMessage('主持人 · 补充条件', value, 'note');
+      this.api.message?.(this.api.me, true);
       $('#interrupt-text').value = '';
       $('#agent-status').textContent='已纳入新条件，点击下一位发言获取回应。';
       this.announce('补充已纳入本次讨论条件。');this.api.changed?.();
@@ -91,17 +90,11 @@ export class Relationships {
     });
     for (const button of document.querySelectorAll('[data-relation]')) button.addEventListener('click', () => {
       if (!this.detailNode) return;
-      const node = this.detailNode;
-      this.overrides.set(node.id, button.dataset.relation);
-      if (this.partner === node && this.kind(node) !== 'similar') this.unlink();
-      if(this.kind(node)==='different')this.effects.contact(api.me,node,api.me);
-      this.configureDetail(node);
-      this.cardKey = '';
-      this.announce(`已将关系改为${label[this.kind(node)]}`);this.api.changed?.();
+      this.correctRelation(button.dataset.relation, this.detailNode);
     });
   }
   announce(text) {$('#announcer').textContent = text;}
-  kind(node) {return relationFor(node, this.demo, this.overrides);}
+  kind(node) {return relationFor(node, this.demo, this.overrides, this.suggestions);}
   setInput(text, example) {
     this.demo = false;
     this.overrides.clear();
@@ -109,116 +102,128 @@ export class Relationships {
     this.unlink(false);
     this.effects.clear();
     this.candidate = null;
-    this.cardKey = '';
-    $('#world-mode').textContent = this.demo && this.api.nodes.some(n=>n.sourceKind==='editorial') ? '演练关系 · 可自行纠正' : '关系由你确认';
+    this.cancelEncounter();
+    $('#world-mode').textContent = this.demo && this.api.nodes.some(n=>n.sourceKind==='editorial') ? '演练关系 · 可自行纠正' : '靠近并停留 1.5 秒 · 相近连接，有分歧就聊聊';
   }
   configureDetail(node) {
     this.detailNode = node;
     $('#relation-settings').hidden = node === this.api.me || !this.api.me.body;
-    $('#relation-origin').textContent = this.demo && !this.overrides.has(node.id) ? '示例关系，你可以纠正' : '你认为你们的观点如何？';
+    $('#relation-origin').textContent = this.demo && !this.overrides.has(node.id) ? '示例关系，你可以纠正' : '纠正自动关系判断';
     for (const button of document.querySelectorAll('[data-relation]')) button.setAttribute('aria-pressed', String(this.kind(node) === button.dataset.relation));
     $('#approach').hidden = node === this.api.me || node === this.partner;
   }
   unlink(notify = true) {
+    this.cancelEncounter();
     if (this.partner && notify) this.effects.emit('unpair', this.api.me, this.partner);
     if (this.partner) this.dismissed = this.partner;
     this.partner = null;
+    this.orbit = null;
+    this.quietUntilMove=false;
     this.velocity = {x: 0, y: 0};
     $('#pair-status').hidden = true;
     this.api.app.dataset.paired = 'false';
     if (notify) {this.announce('已解除连接，你们仍各自保留原来的观点。');this.api.changed?.();}
   }
   tick(dt, paused, dragged) {
+    this.dragged = dragged;
+    if(dragged)this.approachTarget=null;
+    if(dragged)this.quietUntilMove=false;
     if (!paused) this.time += dt;
-    this.effects.advance(dt);
+    this.effects.advance(paused ? 0 : dt);
     const {me, nodes} = this.api;
+    const settling = this.dwell.armed && this.candidate && !dragged;
     if (this.partner && !this.discussion) {
       const reverse = dragged === this.partner;
-      followPair(reverse ? this.partner : me, reverse ? me : this.partner,
-        reverse ? {x: -this.offset.x, y: -this.offset.y} : this.offset, dt, this.velocity);
+      if ((!paused && !this.api.reading?.()) || dragged) {
+        followPair(reverse ? this.partner : me, reverse ? me : this.partner,
+          reverse ? {x: -this.offset.x, y: -this.offset.y} : this.offset, dt, this.velocity);
+        if (!dragged && !settling && !paused && this.api.motion?.() !== false && !this.api.reading?.()) {
+          const turn=this.orbit?.advance(me, this.partner, dt)||0,c=Math.cos(turn),s=Math.sin(turn);
+          this.offset = {x:this.offset.x*c-this.offset.y*s,y:this.offset.x*s+this.offset.y*c};
+        }
+      }
     }
-    if (this.discussion || !me.body) return;
+    if (this.discussion || !me.body) {this.cancelEncounter(); return;}
     for (const n of nodes) if (n !== me && this.kind(n) === 'different') {
-      this.effects.contact(me, n, dragged);
-      separate(me, n, dt, dragged);
+      this.effects.contact(me, n, dragged===this.partner?me:dragged);
+      // During the user's dwell, force animation must not move the target away.
+      if ((!paused && !settling && !this.api.reading?.()) || dragged) separate(me, n, dt, dragged);
     }
-    const next = nearestEncounter(me, nodes, this.partner, n => this.kind(n));
+    const next = this.encounterCandidate();
     if (next !== this.candidate) {if (this.dismissed !== next) this.dismissed = null; this.candidate = next;}
-    this.refreshCard(Boolean(dragged));
+    this.updateEncounter(performance.now(), Boolean(dragged));
   }
-  confirmHover(kind) {this.confirmRelation(kind,this.hoverNode);}
-  confirmRelation(kind,node) {
-    // Each action resolves from the card that presented it.
-    const {me}=this.api;
-    if(!node||!me.body||!['similar','different','unrelated'].includes(kind))return;
-    if(kind==='similar'&&this.partner)return;
+  cancelEncounter(disarm = true) {
+    if(disarm){this.dwell.reset();this.approachTarget=null;}else this.dwell.cancel();
+    $('#encounter-progress').hidden = true;
+  }
+  updateEncounter(now, dragging = false) {
+    const node=this.candidate, kind=node?this.kind(node):'unknown';
+    const blocked=dragging||this.api.encounterBlocked?.()||!!this.discussion||!this.api.me.body;
+    if(this.dwell.armed&&!blocked&&node&&kind==='unknown'&&!this.suggestions.has(node.id))this.api.analyzeEncounter?.(node);
+    const ready=this.dwell.update(node,kind,now,blocked||(kind==='similar'&&!!this.partner));
+    if(ready){this.act({node:ready});return;}
+    const progress=$('#encounter-progress'),waiting=this.dwell.armed&&!blocked&&node&&kind==='unknown';
+    progress.hidden=!this.dwell.target&&!waiting;
+    if(progress.hidden)return;
+    progress.dataset.kind=kind;
+    if(waiting){
+      progress.setAttribute('role','status');progress.removeAttribute('aria-valuenow');
+      progress.setAttribute('aria-label','观点关系');
+      $('#encounter-text').textContent=this.api.analysisPending?.()?'正在比较观点…':this.suggestions.has(node.id)?'信息不足，可补充想法':'暂未读懂，可重新分析';
+      return;
+    }
+    progress.setAttribute('role','progressbar');
+    progress.setAttribute('aria-valuenow',String(Math.round(this.dwell.progress*100)));
+    progress.setAttribute('aria-label',kind==='similar'?'停留后自动连接':'停留后进入辩论');
+    progress.style.setProperty('--dwell',this.dwell.progress);
+    $('#encounter-text').textContent=(kind==='similar'?'即将连接':'即将辩论')+' · '+Math.max(.1,(1-this.dwell.progress)*1.5).toFixed(1)+'s';
+  }
+  correctRelation(kind,node) {
+    if(!node||!this.api.me.body||!['similar','different','unrelated'].includes(kind))return;
+    this.cancelEncounter();
+    this.overrides.set(node.id,kind);
     if(this.partner===node&&kind!=='similar')this.unlink(false);
-    this.overrides.set(node.id,kind);this.cardKey='';
-    this.announce(`已将与「${node.title}」的关系确认为${label[kind]}`);
-    if(kind==='similar')this.act({node});
-    else {if(kind==='different')this.effects.contact(me,node,me);if(kind==='unrelated')this.dismissed=node;this.refreshCard();}
+    this.configureDetail(node);
+    this.announce(`已将与「${node.title}」的关系改为${label[kind]}，靠近并停留即可相遇。`);
     this.api.changed?.();
   }
-  configureHover(node) {
-    this.hoverNode = node;
-    this.cardKey = '';
-    this.refreshCard();
-  }
-  refreshCard(dragging = false) {
-    const hover=this.hoverNode,pair=$('#hover-pair');
-    pair.disabled=!hover||!this.api.me.body||dragging||!!this.partner;
-    pair.textContent=hover&&this.partner===hover?'已结伴':'结伴';
-    pair.title=!this.api.me.body?'先写下自己的想法，即可结伴':this.partner&&this.partner!==hover?'解除当前结伴后，可选择新同伴':'';
-    pair.setAttribute('aria-pressed',String(!!hover&&this.partner===hover));
-    const card=$('#relation-card');
-    const n=!dragging&&card.matches(':hover,:focus-within')?(this.cardNode||this.candidate):this.candidate;
-    const hidden=!n||!this.api.me.body||this.dismissed===n||!!this.discussion||!!hover||$('#detail').open||this.api.app.dataset.composing==='true';
-    $('#relation-card').hidden=hidden;
-    this.cardNode=hidden?null:n;
-    if(hidden){this.cardKey='';return;}
-    const kind=this.kind(n),key=`${n.id}:${kind}:${dragging}:${this.partner?.id}`;
-    if(this.cardKey===key)return;
-    this.cardKey=key;
-    $('#relation-card').dataset.kind=kind;
-    $('#relation-label').textContent=label[kind];
-    $('#relation-title').textContent=kind==='unknown'?'你们的想法，会怎样相遇？':kind==='similar'?'有些想法，彼此呼应。':'在分歧之间，多停留一下。';
-    const suggestion=this.suggestions.get(n.id);
-    $('#relation-reason').textContent=kind==='unknown'&&suggestion?`AI 建议：${label[suggestion.relation]||'关系待确认'}。${suggestion.reason}`:kind==='unknown'?`已靠近「${n.title}」。读过观点后，选择相近或有分歧，让星球回应你的判断。`:this.overrides.has(n.id)?`你将与「${n.title}」的关系确认为${label[kind]}。`:n.reason;
-    $('#relation-choices').hidden=kind!=='unknown';
-    for(const button of document.querySelectorAll('#relation-card [data-confirm-relation]')){
-      const choice=button.dataset.confirmRelation;
-      button.disabled=dragging||(choice==='similar'&&!!this.partner);
-      button.setAttribute('aria-pressed',String(kind===choice));
-      if(choice==='similar')button.textContent=this.partner?'先解除已有连接':'相近，连接星球 ↗';
-    }
-    $('#relation-edit').textContent=kind==='unknown'?'先读这个观点 ↗':'查看观点与关系';
-    const action=$('#relation-action');action.hidden=kind==='unknown';
-    action.disabled=dragging||(kind==='similar'&&!!this.partner);
-    action.textContent=dragging?'松手后，选择下一步':kind==='similar'?(this.partner?'先解除已有连接':'连接这颗星球 ↗'):'聊聊这个分歧 ↗';
-  }
-  act({feedback = true, node = this.candidate} = {}) {
+  configureHover(node) { this.hoverNode=node; if(node)this.cancelEncounter(false); }
+  act({feedback = true, node = this.candidate, restored = false} = {}) {
     const n = node;
+    this.cancelEncounter();
     if (!n || !this.api.me.body) return;
-    if (this.kind(n) === 'different') {this.openDiscussion(n); return;}
-    if (this.partner || this.kind(n) !== 'similar') return;
+    if (!restored && this.kind(n) === 'different') {this.openDiscussion(n); return;}
+    if (this.partner || (!restored && this.kind(n) !== 'similar')) return;
     this.api.hideHover();
     this.partner = n;
+    this.quietUntilMove=true;
+    this.orbit = new PairOrbit(feedback);
     const {me} = this.api;
-    const d = Math.hypot(n.x - me.x, n.y - me.y) || 1;
     const distance = n.r + me.r + 64;
-    this.offset = {x: (n.x - me.x || 1) / d * distance, y: (n.y - me.y) / d * distance};
+    const bearing=Math.atan2(n.y-me.y,n.x-me.x||1);
+    this.offset = feedback?pairOffset(me,n,this.api.nodes,this.api.pairViewport?.()):{x: Math.cos(bearing) * distance, y: Math.sin(bearing) * distance};
     this.velocity = {x: 0, y: 0};
     if (feedback) this.effects.emit('pair', me, n);
     $('#pair-name').textContent = n.title;
     $('#pair-status').hidden = false;
     this.api.app.dataset.paired = 'true';
-    $('#relation-card').hidden = true;
     this.announce(`已与「${n.title}」连接，拖动任意一颗球，同伴都会跟随。`);this.api.event?.('paired');this.api.changed?.();
   }
-  released(preview = false) {
-    this.candidate = nearestEncounter(this.api.me, this.api.nodes, this.partner, n => this.kind(n));
-    this.cardKey = ''; this.refreshCard(false);
-    if(preview && this.candidate)this.api.showEncounter?.(this.candidate);
+  encounterCandidate() {
+    const target=this.approachTarget;
+    if(target&&this.api.nodes.includes(target)&&target!==this.partner&&this.kind(target)!=='unrelated'&&gap(this.api.me,target)<100)return target;
+    // With a companion, only a new disagreement can start another encounter.
+    return nearestEncounter(this.api.me,this.api.nodes,this.partner,n=>this.partner&&this.kind(n)==='similar'?'unrelated':this.kind(n));
+  }
+  released(approached = false, target = null) {
+    if(approached)this.approachTarget=target;
+    this.candidate = this.encounterCandidate();
+    if(approached){
+      this.quietUntilMove=false;this.dismissed=null;
+      this.api.showEncounter?.(this.candidate);
+      this.dwell.arm();
+    }
   }
   speaking(node) {
     if (!this.discussion || this.discussion.finished) return false;
@@ -231,12 +236,13 @@ export class Relationships {
     }
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, width, height);
     const me = this.discussion?.source || this.api.me;
-    if (this.partner && !this.discussion) this.bridge(me, this.partner, true, scale);
-    if (this.candidate && this.candidate !== this.partner && !this.discussion) {
+    this.api.drawSpace?.(ctx, width, height, scale);
+    if (!this.api.drawSpace && this.partner && !this.discussion) this.bridge(me, this.partner, true, scale);
+    if (!this.api.drawSpace && this.candidate && this.candidate !== this.partner && !this.discussion) {
       if (this.kind(this.candidate) === 'similar') this.bridge(me, this.candidate, false, scale);
       else if(this.kind(this.candidate)==='different') this.tension(me, this.candidate);
     }
-    if (this.discussion) {
+    if (this.discussion && !this.api.drawSpace) {
       const n = this.discussion.target;
       if (me === this.api.me && this.kind(n) === 'different') this.tension(me, n);
       // A dialogue alone never establishes agreement.
@@ -321,13 +327,15 @@ export class Relationships {
     if($('#discussion-provider'))$('#discussion-provider').textContent=$('#discussion-source').textContent+' · 设置';
   }
   openDiscussion(target, source=this.api.me, mode=this.preferredMode) {
+    this.cancelEncounter();
     this.effects.clear();
     this.summaryView.cancel();
     this.stopAgent();this.api.stopMovement();this.returnFocus=document.activeElement;
     const partner=companionForDiscussion(this.api.me,source,target,this.partner);
     this.discussion={id:crypto.randomUUID(),source,target,companion:partner?snapshotNode(partner):null,mode,turn:0,additions:[],messages:[],finished:false,auto:false,speaker:null,summary:null};
-    this.api.hideHover();$('#detail').close();$('#relation-card').hidden=true;$('#discussion').hidden=false;
+    this.api.hideHover();$('#detail').close();$('#discussion').hidden=false;
     this.api.app.inert=true;this.api.app.dataset.discussing='true';this.api.frameDiscussion(target,source);
+    this.api.openPortal?.(source, target);
     $('#discussion-speaker').textContent=`A · ${source.author}`;$('#discussion-target').textContent=`B · ${target.author}`;
     this.describeMode();$('#discussion-mode').disabled=false;
     $('#discussion-log').replaceChildren();$('#discussion-live').hidden=false;$('#discussion-summary').hidden=true;
@@ -341,7 +349,7 @@ export class Relationships {
     this.renderCompanion();
     this.updateSteps();$('#close-discussion').focus();this.api.changed?.();
   }
-  renderCompanion(){const n=this.discussion?.companion;$('#discussion-companion').hidden=!n;$('#discussion-companion').textContent=n?`携伴讨论 · ${n.title||n.author}：${n.analysis?.claim||n.claim||n.body.slice(0,90)}。同伴补充会进入双方回应。`:'';}
+  renderCompanion(){const n=this.discussion?.companion;$('#discussion-companion').hidden=!n;$('#discussion-companion').textContent=n?`携伴讨论 · ${n.title||n.author}。同伴材料会进入双方回应。`:'';}
   addSourceLink(node){if(!node.url)return;const a=document.createElement('a');a.className='message-source';a.href=node.url;a.target='_blank';a.rel='noopener noreferrer';a.textContent='阅读知乎原回答 ↗';$('#discussion-log').lastElementChild.append(a);}
   updateSteps() {
     const step=this.discussion.finished?2:this.discussion.turn<2?0:1;
@@ -377,6 +385,7 @@ export class Relationships {
       if(d.mode==='demo'&&d.companion&&speaker===d.source)text+='\n\n离线材料提示 · 同伴关注：'+(d.companion.analysis?.claim||d.companion.claim||d.companion.body.slice(0,160));
       if(this.discussion!==d||d.finished||request.signal.aborted||d.request!==request)return;
       this.addMessage(`${d.turn%2===0?'A':'B'} · ${speaker.author} 的 Agent`,text,d.turn%2===0?'mine':'other',true,metadata);
+      this.api.message?.(speaker);
       d.turn++;this.updateSteps();if(d.turn===2)this.api.event?.('two-turns');this.api.changed?.();$('#agent-status').textContent=`${d.turn} / 6 次发言 · ${metadata.provider==='demo'?'离线预设发言':metadata.provider==='zhihu'?'知乎直答已返回':`${metadata.model||'实时模型'} 已返回`}`;
       if(metadata.provider!=='demo'){
         $('#discussion-source').textContent=`${metadata.model||'实时模型'} 生成 · 非原答主发言`;
@@ -398,10 +407,12 @@ export class Relationships {
   }
 
   closeDiscussion(){
+    this.cancelEncounter();
+    this.api.closePortal?.();
     this.summaryView.cancel();
     if(this.discussion&&!this.discussion.saved)this.api.changed?.();
     this.stopAgent();$('#discussion').hidden=true;this.api.app.inert=false;this.api.app.dataset.discussing='false';this.discussion=null;
-    this.api.restoreCamera();this.dismissed=this.candidate;this.refreshCard();
+    this.api.restoreCamera();this.dismissed=this.candidate;
     if(this.returnFocus?.getClientRects().length)this.returnFocus.focus();else $('#profile').focus();this.api.changed?.();
   }
   refreshPicker(){
@@ -411,9 +422,10 @@ export class Relationships {
     }
   }
   reset(){
+    this.quietUntilMove=false;
     this.effects.clear();
-    this.closeDiscussion();this.unlink(false);this.overrides.clear();this.candidate=null;this.dismissed=null;this.detailNode=null;this.cardKey='';this.record=null;
-    $('#relation-card').hidden=true;$('#saved-record').hidden=true;this.refreshPicker();
+    this.closeDiscussion();this.unlink(false);this.overrides.clear();this.candidate=null;this.dismissed=null;this.detailNode=null;this.record=null;
+    $('#saved-record').hidden=true;this.refreshPicker();
   }
   snapshot(){return snapshotDiscussion(this.discussion,$('#record-note').value,$('#record-change').value,$('#record-common').value);}
   restore(record,asRecord=false){

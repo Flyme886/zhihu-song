@@ -71,44 +71,27 @@ export async function dragPlanet(page,from,to,{touch=false}={}){
   for(let step=1;step<=16;step++)await page.mouse.move(from.x+(to.x-from.x)*step/16,from.y+(to.y-from.y)*step/16);
   await page.mouse.up();
 }
-export async function verifyRelations(page,options={}){
-  const initial=await nodePositions(page),me=initial[0],other=initial[1];
-  const d=me.r+other.r+24;
-  await dragPlanet(page,me,{x:other.x+d,y:other.y},options);
-  await page.waitForFunction(()=>!document.querySelector('#relation-card').hidden);
-  assert.equal(await page.evaluate(()=>document.querySelector('#relation-card').dataset.kind),'unknown');
-  assert.equal(await page.evaluate(()=>document.querySelector('#relation-card').parentElement.id),'app');
-  assert.equal(await page.evaluate(()=>document.querySelector('#hover-card').hidden),true);
-  await page.click('[data-confirm-relation="similar"]');
+// Run with real, already analyzed viewpoints (or an explicitly seeded QA session).
+// The caller chooses which known similar/different planets to exercise.
+export async function verifyRelations(page,{similarId,differentId,...options}={}){
+  assert.ok(similarId&&differentId,'provide the IDs of content-classified viewpoints');
+  const initial=await nodePositions(page),me=initial.find(n=>n.id==='me'),other=initial.find(n=>n.id===similarId);
+  await dragPlanet(page,me,{x:other.x+me.r+other.r+20,y:other.y},options);
   await page.waitForFunction(()=>document.querySelector('#app').dataset.paired==='true');
-  const paired=await nodePositions(page);
-  await dragPlanet(page,paired[0],{x:paired[0].x+65,y:paired[0].y+90},options);
+  assert.equal(await page.evaluate(()=>!!document.querySelector('#relation-card')),false);
+  assert.equal(await page.evaluate(()=>document.querySelector('#hover-card').hidden),true);
+  const paired=await nodePositions(page),leader=paired.find(n=>n.id==='me'),companion=paired.find(n=>n.id===similarId);
+  await dragPlanet(page,leader,{x:leader.x+65,y:leader.y+90},options);
   await page.waitForFunction(({id,startY})=>{
     const r=document.querySelector(`[data-node="${id}"]`).getBoundingClientRect();return r.y+r.height/2>startY+55;
-  },{id:paired[1].id,startY:paired[1].y});
-  assert.equal(await page.evaluate(()=>document.body.dataset.view),'world','dragging my planet must not enter the archive');
-  const bridge=await page.evaluate(()=>{
-    const c=document.querySelector('#connections'),pixels=c.getContext('2d').getImageData(0,0,c.width,c.height).data;
-    let visible=0;for(let i=3;i<pixels.length;i+=4)if(pixels[i])visible++;return visible;
-  });
-  assert.ok(bridge>20,'a connected pair must have a visible particle bridge');
-  await page.click('#unlink');
-  // Move away from the classified sphere, then approach another unknown viewpoint.
-  const second=(await nodePositions(page))[2],current=(await nodePositions(page))[0];
-  await dragPlanet(page,current,{x:second.x-second.r-current.r-15,y:second.y},options);
-  await page.waitForFunction(()=>!document.querySelector('#relation-card').hidden&&document.querySelector('#relation-card').dataset.kind==='unknown');
-  await page.click('[data-confirm-relation="different"]');
-  await page.waitForFunction(()=>document.querySelector('#relation-card').dataset.kind==='different');
-  const before=await nodePositions(page);
-  await dragPlanet(page,before[0],{x:before[2].x-before[0].r-before[2].r+28,y:before[2].y},options);
-  await page.waitForFunction(id=>{
-    const center=el=>{const r=el.getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2,r:r.width/2};};
-    const a=center(document.querySelector('[data-node="me"]')),b=center(document.querySelector(`[data-node="${id}"]`));
-    return Math.hypot(a.x-b.x,a.y-b.y)-a.r-b.r>a.r/80*26;
-  },before[2].id);
-  const after=await nodePositions(page);
-  assert.ok(Math.hypot(after[2].x-before[2].x,after[2].y-before[2].y)>8,'the other sphere yields to a drag');
+  },{id:companion.id,startY:companion.y});
   assert.equal(await page.evaluate(()=>document.body.dataset.view),'world');
+  const before=await nodePositions(page),current=before.find(n=>n.id==='me'),different=before.find(n=>n.id===differentId);
+  await dragPlanet(page,current,{x:different.x+different.r+current.r+20,y:different.y},options);
+  await page.waitForFunction(()=>!document.querySelector('#discussion').hidden);
+  assert.equal(await page.evaluate(()=>document.querySelector('#discussion-companion').hidden),false);
+  await page.click('#close-discussion');
+  assert.equal(await page.evaluate(()=>document.querySelector('#encounter-progress').hidden),true);
   assert.deepEqual(await page.evaluate(()=>window.__qaErrors),[]);
-  return {bridgePixels:bridge,repelledDistance:Math.hypot(after[2].x-before[2].x,after[2].y-before[2].y)};
+  return {automaticPair:true,automaticDebate:true,companionRetained:true};
 }

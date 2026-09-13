@@ -3,8 +3,10 @@ export function gap(a, b) {
   return Math.hypot(a.x - b.x, a.y - b.y) - a.r - b.r;
 }
 
-export function relationFor(node, demo, overrides) {
+export function relationFor(node, demo, overrides, suggestions = new Map()) {
   if (overrides.has(node.id)) return overrides.get(node.id);
+  const suggestion = suggestions.get(node.id)?.relation;
+  if (['similar', 'different', 'unrelated', 'unknown'].includes(suggestion)) return suggestion;
   return demo ? (node.exampleRelation || 'unknown') : 'unknown';
 }
 
@@ -15,7 +17,7 @@ export function nearestRelated(me, nodes, partner, classify, limit = 100) {
     .sort((a, b) => a.gap - b.gap)[0]?.node || null;
 }
 
-// Unknown neighbors need an explicit choice before attraction or repulsion can act.
+// Unclassified neighbors stay neutral while their content is being compared.
 export function nearestUnconfirmed(me, nodes, classify, limit = 100) {
   return nodes.filter(n => n !== me && classify(n) === 'unknown')
     .map(node => ({node, gap: gap(me, node)}))

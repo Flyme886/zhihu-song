@@ -50,21 +50,21 @@ test('halo renders fewer particles while retaining body density and sharing the 
   assert.equal(particleBudget(1000).body,165000);
 });
 
-test('connection gathers before its persistent bridge appears and settles within 840ms',()=>{
+test('connection gathers before the binary orbit appears and settles within 1650ms',()=>{
   const fx=new RelationshipEffects(),a={id:'a'},b={id:'b'};
   fx.emit('pair',a,b);assert.equal(fx.bridgeVisibility(a,b),0);
   fx.advance(.1);fx.advance(.1);assert.equal(fx.bridgeVisibility(a,b),0);
-  fx.advance(.1);assert.ok(fx.bridgeVisibility(a,b)>0&&fx.bridgeVisibility(a,b)<.2);
-  for(let i=0;i<6;i++)fx.advance(.1);
+  fx.advance(.1);fx.advance(.1);fx.advance(.1);fx.advance(.1);assert.ok(fx.bridgeVisibility(a,b)>0&&fx.bridgeVisibility(a,b)<.2);
+  for(let i=0;i<11;i++)fx.advance(.1);
   assert.deepEqual(fx.debug().active,[]);assert.equal(fx.bridgeVisibility(a,b),1);
 });
 
-test('repulsion compression and rebound are visual only and expire in 780ms',()=>{
+test('repulsion compression and rebound are visual only and expire in 1250ms',()=>{
   const fx=new RelationshipEffects(),a={id:'a',x:0,y:0,r:80},b={id:'b',x:180,y:0,r:80};
   const original=JSON.stringify([a,b]);fx.emit('repel',a,b);fx.advance(.1);
   assert.ok(fx.appearance(a).scale<1);
-  fx.advance(.1);fx.advance(.1);assert.ok(fx.appearance(a).scale>1);
-  for(let i=0;i<5;i++)fx.advance(.1);
+  for(let i=0;i<4;i++)fx.advance(.1);assert.ok(fx.appearance(a).scale>1);
+  for(let i=0;i<8;i++)fx.advance(.1);
   assert.deepEqual(fx.appearance(a),{scale:1,glow:1});assert.equal(JSON.stringify([a,b]),original);
 });
 

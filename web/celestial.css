@@ -1,0 +1,56 @@
+/* Public-space choreography. The personal landscape retains its own renderer. */
+#space-field{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+#universe{z-index:1}#connections{z-index:2}#node-layer{z-index:3}
+body:not([data-view="world"]) #space-field{display:none}
+body[data-view="world"] #app{background:radial-gradient(ellipse at 62% 46%,#0b1020 0%,#050913 48%,#03060b 88%)}
+body[data-view="world"] #universe{background:transparent}
+#skip-world-entry{position:absolute;top:88px;left:50%;transform:translateX(-50%);z-index:8;padding:9px 14px;border:1px solid #a6c8ec30;border-radius:24px;color:#afc7df;background:#0c1425b8;font-size:11px;letter-spacing:1px}
+#skip-world-entry[hidden],#encounter-progress[hidden]{display:none}
+#world-context{transition:opacity .4s,transform .6s}
+#app[data-entering="true"] #world-context{opacity:0;transform:translateY(8px);pointer-events:none}
+#app[data-entering="true"] .node-label{opacity:0!important}
+#encounter-progress{position:absolute;z-index:7;transform:translate(-50%,-50%);display:grid;grid-template-columns:28px auto;column-gap:8px;align-items:center;pointer-events:none;color:#bde9ed;font-size:12px;white-space:nowrap;text-shadow:0 1px 8px #02040c,0 0 18px #050a18}
+#encounter-progress[data-kind="different"]{color:#dacdf9}
+#encounter-progress svg{width:28px;height:28px;grid-row:span 2;transform:rotate(-90deg);overflow:visible}
+#encounter-progress circle{fill:none;stroke:currentColor;stroke-width:1.5;opacity:.2}
+#encounter-progress .dwell-arc{opacity:1;stroke-width:2;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:calc(1 - var(--dwell,0))}
+#encounter-progress small{font-size:9px;letter-spacing:1px;opacity:.7;margin-top:3px}
+#encounter-progress[data-kind="unknown"]{color:#a9bdcd}
+#encounter-progress[data-kind="unknown"] .dwell-arc{display:none}
+#relation-settings summary{cursor:pointer;color:#a6bdd1;font-size:12px;padding:12px 0}
+#portal-caption{position:absolute;z-index:4;pointer-events:none;text-align:center;transform:translate(-50%,-50%);color:#d9d9ed}
+#portal-caption[hidden]{display:none}
+#portal-caption>span{font-size:10px;letter-spacing:1px;display:block;color:#a2c9df;line-height:1.65}
+#portal-caption p{font-family:"Songti SC","Noto Serif SC",serif;font-size:14px;line-height:1.8;margin:8px 0 0;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+#pair-status .pair-symbol{font-size:17px;color:#b3e8ed;white-space:nowrap;text-shadow:0 0 16px #7bc9ee}
+#pair-status{border:0;background:none;backdrop-filter:none;box-shadow:none;padding:0;gap:10px;max-width:calc(100% - 60px)}
+#pair-status>div{display:flex;flex-direction:row;align-items:center;gap:7px;min-width:0}
+#pair-status small{white-space:nowrap;font-size:10px}
+#pair-status #pair-name{font-size:11px;max-width:175px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#pair-status #unlink{flex:none;white-space:nowrap;font-size:10px;padding:4px;background:none;border:0;text-decoration:underline;text-underline-offset:4px}
+#app[data-discussing="true"] #world-context,#app[data-discussing="true"] .topbar,#app[data-discussing="true"] #pair-status,#app[data-discussing="true"] #case-bar,#app[data-discussing="true"] .map-controls,#app[data-discussing="true"] #world-footer,#app[data-discussing="true"] #resume-discussion{visibility:hidden}
+#app[data-discussing="true"] .world-only{transition:none}
+#app[data-discussing="true"] .topbar *{visibility:hidden}
+body:has(#app[data-discussing="true"]) #egg-trigger{display:none}
+#discussion{background:linear-gradient(145deg,#121b2cf5,#0c1120fa 65%);border-color:#b0bbf535;box-shadow:-26px 0 100px #02040b44;animation:none}
+#discussion .discussion-top .eyebrow{letter-spacing:3px;color:#bfc3e6}
+#discussion h1{font-family:"Songti SC","Noto Serif SC",serif;font-weight:400;letter-spacing:1px}
+#discussion .discussion-steps{padding-bottom:16px;border-bottom:1px solid #a8b5e61c}
+#discussion .message.mine{border-color:#a0d9e47a}#discussion .message.other{border-color:#b09beb7a}
+#discussion .message-author{color:#bdcbe4}
+#discussion-settings{flex:none;margin:10px 0 14px;color:#9bacc5;font-size:11px;line-height:1.7}
+#discussion-settings summary{cursor:pointer;padding:7px 0}
+#discussion-settings[open]{padding:0 12px 10px;border:1px solid #a8bce92a;border-radius:10px;max-height:150px;overflow:auto}
+#discussion-settings #discussion-source{margin:8px 0 0;font-size:11px}
+#discussion #interrupt-form{display:grid;grid-template-columns:1fr auto;column-gap:10px;padding:10px 12px;flex:none}
+#discussion #interrupt-form label{grid-column:1 / -1;font-size:11px;margin-bottom:6px}
+#discussion #interrupt-text{font-size:13px;height:46px;max-height:100px;line-height:1.7;margin:0;min-width:0}
+#discussion #interrupt-form .enter-button{align-self:end;padding:9px 12px;margin:0;font-size:11px}
+#discussion-live{overflow:auto}#discussion-log{min-height:145px}
+#discussion .turn-actions{flex:none}#discussion .turn-actions button{font-size:11px}
+.memory-flight[data-crystal="true"] i:first-child{border-radius:25%;background:linear-gradient(135deg,#fff9e9,#e6c28c 55%,#8477c6);box-shadow:0 0 24px 5px #ebcb8c88}
+.memory-flight[data-crystal="true"] i:first-child:after{content:"";position:absolute;inset:-6px -10px;border:1px solid #ead8b1b0;border-radius:50%;transform:rotate(-28deg) scaleY(.6)}
+@media(min-width:1101px){#discussion{top:0;bottom:0;right:0;width:min(440px,40vw);height:100dvh;border-radius:0;border-left:1px solid #b0bbf535;padding:26px 28px}#discussion h1{font-size:27px;margin:19px 0 10px}}
+@media(max-width:1100px){#discussion{top:auto;bottom:0;right:0;width:calc(100% - var(--rail,0px));height:70dvh;border-radius:24px 24px 0 0;padding:18px 24px;box-shadow:0 -25px 90px #05071199;border-top:1px solid #bac4ed40}#discussion h1{font-size:22px;margin:12px 0}#discussion .discussion-steps{padding-bottom:10px}}
+@media(max-width:700px){#skip-world-entry{top:70px;font-size:10px;padding:7px 11px}#encounter-progress{font-size:11px}#discussion{width:100%;padding:16px 18px}#discussion h1{font-size:22px}#discussion .discussion-top{min-height:28px}#discussion .discussion-steps{gap:7px}#discussion .discussion-step{font-size:11px}#app[data-discussing="true"] .node-label{font-size:11px;max-width:100px}#pair-status .pair-symbol{font-size:23px}#portal-caption p{font-size:12px;line-height:1.6;-webkit-line-clamp:2}#portal-caption>span{font-size:9px;letter-spacing:0}}
+@media(prefers-reduced-motion:reduce){#skip-world-entry{display:none}#encounter-progress{text-shadow:none}}

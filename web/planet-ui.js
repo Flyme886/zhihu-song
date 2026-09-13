@@ -148,9 +148,19 @@ export function setupPlanet(api){
    updateIndex();if(api.store.failed){toast('修改暂留在本页，请导出备份。');return;}
    const latest=(kind==='record'?index.records:index.opinions).filter(i=>i.topicId===api.store.data.lastTopic).at(-1);const action={label:'回看刚才',run:()=>latest?navigate('/planet/'+(kind==='record'?'records':'opinions')+'/'+encodeURIComponent(latest.id)):enter()};
    if(kind==='record'){
-    const target=(view==='world'?$('#profile'):$('#cosmic-my-planet')),rect=target?.getBoundingClientRect();
+    const target=(view==='world'?$('#profile'):$('#cosmic-my-planet'));
     const land=()=>{api.renderer()?.burst();api.motion?.pulse(target);audio.cue('save');toast('这次相遇，已成为你的一部分。',action);};
-    if(origin&&rect&&api.motion)saveJourney=api.motion.stream({x:origin.left+origin.width/2,y:origin.top+origin.height/2},{x:rect.left+rect.width/2,y:rect.top+rect.height/2},{color:'#efce94',duration:1050,count:16,land});else{land();saveJourney=Promise.resolve(true);}
+    if(origin&&target&&api.motion){
+     const token=routeToken;
+     // Closing the discussion reveals the destination. Measure it on the next
+     // frame so the crystal never flies towards a hidden, zero-size button.
+     saveJourney=new Promise(resolve=>requestAnimationFrame(()=>{
+      if(token!==routeToken||document.hidden||api.store.failed){resolve(false);return;}
+      const rect=target.getBoundingClientRect();
+      if(!rect.width){resolve(false);return;}
+      api.motion.stream({x:origin.left+origin.width/2,y:origin.top+origin.height/2},{x:rect.left+rect.width/2,y:rect.top+rect.height/2},{color:'#efce94',duration:1450,count:24,crystal:true,land}).then(resolve);
+     }));
+    }else{land();saveJourney=Promise.resolve(true);}
    }else {api.renderer()?.burst();audio.cue('save');toast(index.opinions.length===1?'第一束光，已经留在你的星球。':'新的想法，已留在你的星球。',action);}
   },
   frame(dt){wander?.frame(dt);if(view==='world')return false;if(view==='travel'){travel=Math.min(1,travel+dt/travelDuration);if(!ringPlayed&&travel>=.54){ringPlayed=true;if(!reduced)audio.cue('ring');}const step=travel<.17?0:travel<.54?1:travel<.76?2:3;$('#travel-step').textContent=['离开喧嚣','循着思想的轨迹','穿过一片微光','回到你的世界'][step];$('#planet-travel').style.setProperty('--progress',travel);$('#atmosphere-veil').style.background=reduced?'#f4eddd':'';$('#atmosphere-veil').style.opacity=String(reduced?1-travel:Math.max(0,1-Math.abs(travel-.76)/.10)*.9);if(travel>=1)finishTravel();}else $('#atmosphere-veil').style.opacity='0';

@@ -45,6 +45,9 @@ export class PlanetAudio {
   else if(name==='step'){this.impact(.045*strength,0);}
   else if(name==='focus'){this.tone(392,.9,.13,-.2);this.tone(587.33,1.3,.045,.25);}
   else if(name==='save'){this.tone(261.63,1.3,.2,-.15);this.tone(392,1.8,.09,.15);this.tone(523.25,2.1,.03,.35);}
+  else if(name==='portal'){this.tone(73.42,1.2,.24,-.3,'effects',{endHz:146.83});this.tone(220,1.6,.10,.3,'effects',{delay:.18});this.tone(440,1.7,.045,0,'effects',{delay:.4});}
+  else if(name==='message'){this.tone(329.63,.55,.075,pan);this.tone(493.88,.7,.025,-pan,'effects',{delay:.06});}
+  else if(name==='interject'){this.tone(261.63,.75,.13,0);this.tone(392,.9,.04,.25,'effects',{delay:.12});}
   else if(name==='pair'){
    this.tone(196,.85,.23,pan-.2);this.tone(293.66,1.05,.17,pan+.2,'effects',{delay:.10});
    this.tone(392,1.4,.13,pan,'effects',{delay:.23});this.tone(784,.8,.025,pan,'effects',{delay:.3});

@@ -3,7 +3,7 @@ import * as THREE from './vendor/three/three.module.js';
 // Original ribbon and shell particles, shared by the composer and public viewpoints.
 const vertexShader=`precision highp float;
     attribute vec4 seed;uniform vec2 resolution,center;uniform float radius,time,chaos,dpr,offset;
-    uniform mediump float halo;varying mediump float light,depth;
+    uniform mediump float halo;uniform vec2 fieldAxis;uniform float pressure;varying mediump float light,depth;
     mat2 rot(float a){return mat2(cos(a),-sin(a),sin(a),cos(a));}
     void main(){float group=floor(seed.w/0.74*3.0);float t=time;float v=seed.y*2.0-1.0;vec3 p;float bright;
     if(seed.w<0.74){float phase=group*2.0944+offset;float dir=group==1.0?-1.0:1.0;
@@ -22,9 +22,13 @@ const vertexShader=`precision highp float;
       p.xz=rot(0.7*sin(p.y*2.8-t*0.28))*p.xz;p.yz=rot(0.45*sin(p.x*3.0+t*0.32))*p.yz;
       float r=0.997-0.007*seed.z;if(seed.w>0.97)r*=pow(seed.z,0.33);p=normalize(p)*r;bright=seed.w>0.97?0.09:0.19;}
     p.xz=rot(-0.25+t*0.035+offset)*p.xz;p.yz=rot(0.18)*p.yz;
-    vec2 point=center+vec2(p.x,-p.y)*radius;gl_Position=vec4(point/resolution*2.0-1.0,0.,1.);gl_Position.y=-gl_Position.y;
+    vec2 shell=vec2(p.x,-p.y);float facing=dot(shell,fieldAxis);
+    shell-=fieldAxis*facing*pressure*.13;
+    shell+=(shell-fieldAxis*facing)*pressure*.045;
+    vec2 point=center+shell*radius;gl_Position=vec4(point/resolution*2.0-1.0,0.,1.);gl_Position.y=-gl_Position.y;
     float size=max(0.85,(0.63+seed.z*0.37)*dpr);gl_PointSize=size*(halo>0.5?5.5:1.0);
     light=bright*(0.48+0.52*smoothstep(-0.9,0.75,p.z));
+    light+=pow(max(0.,facing),4.)*pressure*.38;
     if(seed.w>=0.74&&seed.w<0.97)light*=0.65+2.6*pow(1.0-abs(p.z),5.0);
     depth=p.z*0.5+0.5;}`;
 const fragmentShader=`precision mediump float;uniform mediump float halo;uniform float glow,opacity,gain;uniform vec3 tint;varying mediump float light,depth;
@@ -53,7 +57,7 @@ export function createParticleNode(){
   const data=seeds(),geometry=new THREE.BufferGeometry();
   geometry.setAttribute('seed',new THREE.InterleavedBufferAttribute(data,4,0));
   geometry.setAttribute('position',new THREE.InterleavedBufferAttribute(data,3,0));
-  const uniforms={resolution:{value:new THREE.Vector2()},center:{value:new THREE.Vector2()},radius:{value:1},time:{value:0},chaos:{value:1},dpr:{value:1},offset:{value:0},halo:{value:0},glow:{value:1},opacity:{value:1},gain:{value:1},tint:{value:new THREE.Vector3(1,1,1)}};
+  const uniforms={resolution:{value:new THREE.Vector2()},center:{value:new THREE.Vector2()},fieldAxis:{value:new THREE.Vector2(1,0)},pressure:{value:0},radius:{value:1},time:{value:0},chaos:{value:1},dpr:{value:1},offset:{value:0},halo:{value:0},glow:{value:1},opacity:{value:1},gain:{value:1},tint:{value:new THREE.Vector3(1,1,1)}};
   const material=new THREE.RawShaderMaterial({uniforms,vertexShader,fragmentShader,transparent:true,depthTest:false,depthWrite:false,blending:THREE.CustomBlending,blendSrc:THREE.OneFactor,blendDst:THREE.OneFactor,blendEquation:THREE.AddEquation});
   const haloMaterial=material.clone();haloMaterial.uniforms.halo.value=1;
   // The broad glow previously repeated the complete vertex shader and all body
@@ -75,6 +79,7 @@ export function updateParticleNode(group,node,width,height,dpr){
     u.radius.value=node.r*dpr;u.time.value=node.time;u.chaos.value=node.chaos??1;
     u.dpr.value=dpr;u.offset.value=node.offset??0;u.glow.value=node.glow??1;
     u.opacity.value=node.opacity;u.tint.value.fromArray(node.tint);
+    u.fieldAxis.value.fromArray(node.fieldAxis || [1,0]);u.pressure.value=node.pressure || 0;
     u.gain.value=2.2*Math.min(1.9,Math.max(.5,node.r*node.r*4/budget.full))*(u.halo.value?budget.body/budget.halo:1);
   }
 }

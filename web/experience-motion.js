@@ -12,13 +12,13 @@ export function createExperienceMotion(enabled=()=>true){
   return animation;
  }
  function pulse(el){run(el,[{boxShadow:'0 0 0 0 #b5e9ff00'},{boxShadow:'0 0 0 12px #b5e9ff35',offset:.35},{boxShadow:'0 0 0 26px #b5e9ff00'}],{duration:850});}
- function stream(from,to,{color='#d8f4ff',count=12,duration=900,land}={}){
+ function stream(from,to,{color='#d8f4ff',count=12,duration=900,land,crystal=false}={}){
   if(!enabled()||document.hidden){land?.();return Promise.resolve(true);}
-  const group=document.createElement('div');group.className='memory-flight';group.setAttribute('aria-hidden','true');document.body.append(group);
+  const group=document.createElement('div');group.className='memory-flight';group.dataset.crystal=String(crystal);group.setAttribute('aria-hidden','true');document.body.append(group);
   const dx=to.x-from.x,dy=to.y-from.y,arc=Math.min(130,Math.abs(dx)*.25+45);
   let final,resolveFlight;const completed=new Promise(resolve=>{resolveFlight=resolve;});
   for(let i=0;i<count;i++){
-   const dot=document.createElement('i');dot.style.setProperty('--flight-color',color);dot.style.width=dot.style.height=(i?2+i%3:7)+'px';group.append(dot);
+   const dot=document.createElement('i');dot.style.setProperty('--flight-color',color);dot.style.width=dot.style.height=(i?2+i%3:crystal?14:7)+'px';group.append(dot);
    const frames=Array.from({length:17},(_,j)=>{const t=j/16,drift=Math.sin(Math.PI*t)*(i-count/2)*1.3;return{transform:`translate(${from.x+dx*t+drift}px,${from.y+dy*t-Math.sin(Math.PI*t)*arc}px) scale(${.5+Math.sin(Math.PI*t)*.5})`,opacity:j===0||j===16?0:i? .6:1,offset:t};});
    const a=run(dot,frames,{duration,delay:i*13,easing:'cubic-bezier(.4,0,.2,1)'});if(i===0)a?.finished.then(()=>{if(!document.hidden)land?.();resolveFlight(true);}).catch(()=>resolveFlight(false));final=a;
   }

@@ -8,6 +8,8 @@ import {ThoughtAdvice} from './thought-advice.js';
 import {renderOriginal,answerDate,answerPresentation} from './original-answer.js';
 import {placeHoverCard} from './hover-card.js';
 import {createExperienceMotion,createDetailTransition,setupSpatialPicker} from './experience-motion.js';
+import {CelestialScene} from './celestial-scene.js';
+import {fieldPressure,dragThroughField} from './orbital-motion.js';
 let planetUI=null,spatialPicker=null,pickerCamera=null;
 const catalog=await loadCatalog();
 let storage;try{storage=localStorage;}catch{}
@@ -32,38 +34,54 @@ const clamp=(v,a,b)=>Math.min(b,Math.max(a,v)),lerp=(a,b,t)=>a+(b-a)*t,smooth=t=
 let approachFrame=0, savedCamera=null;
 let formationFill=.12,formationY=0,formationRadius=0,autoComposition=false;
 const uiMotion=createExperienceMotion(()=>!reduced&&!paused);
+const space=new CelestialScene($('#space-field'),()=>!reduced&&!paused);
 const detailTransition=createDetailTransition($('#detail'),uiMotion);
 function stopMovement(){if(approachFrame)cancelAnimationFrame(approachFrame);approachFrame=0;drag=null;pointers.clear();pinch=null;}
 const relations=new Relationships({me,nodes,app,detail:openDetail,hideHover,stopMovement,topic:()=>currentTopic,changed:persist,event:discoverEgg,saveRecord,
   showEncounter(){hideHover();},
   openPicker(){spatialPicker.open();},afterSave:record=>planetUI?.onRecordSaved(record),
   motion:()=>!paused&&!reduced,
-  feedback(kind,{a,b,strength}){planetUI?.interaction(kind,{pan:clamp((a.sx+b.sx)/Math.max(width,1)-1,-.8,.8),strength});},
+  analyzeEncounter:node=>advice.ensure(node),
+  analysisPending:()=>advice.busy,
+  encounterBlocked:()=>!!hovered||!!query||pointers.size>0||!!drag||!!approachFrame||!!cameraTween||document.hidden||!!document.querySelector('dialog[open]')||stage!=='world'||planetUI?.view!=='world',
+  reading:()=>!!hovered||$('#detail').open||spatialPicker?.active||document.activeElement?.matches('.node')||!!query,
+  pairViewport:()=>({width,top:$('#world-context').getBoundingClientRect().bottom-app.getBoundingClientRect().top+30,bottom:height-185}),
+  drawSpace(ctx,w,h,scale){space.draw(ctx,nodes,relations,w,h,scale,store.setting('worldQuality')==='low');},
+  feedback(kind,{a,b,strength}){space.emit(kind,a,b);planetUI?.interaction(kind,{pan:clamp((a.sx+b.sx)/Math.max(width,1)-1,-.8,.8),strength});},
+  openPortal(source,target){space.open(source,target);planetUI?.interaction('portal',{});},
+  closePortal(){space.close();$('#portal-caption').hidden=true;},
+  message(node,host=false){space.message(node,host);planetUI?.interaction(host?'interject':'message',{pan:host?0:node.id===relations.discussion?.source.id?-.4:.4});},
   takePending(){const text=pendingCondition;pendingCondition='';return text;},
   frameDiscussion(target,source=me){
-    savedCamera??=pickerCamera?{pan:{...pickerCamera.pan},zoom:pickerCamera.zoom}:{pan:{...pan},zoom:targetZoom};
-    const involved=[source,target];
-    const bounds={left:Math.min(...involved.map(n=>n.x-n.r)),right:Math.max(...involved.map(n=>n.x+n.r)),top:Math.min(...involved.map(n=>n.y-n.r)),bottom:Math.max(...involved.map(n=>n.y+n.r))};
-    const mid={x:(bounds.left+bounds.right)/2,y:(bounds.top+bounds.bottom)/2};
-    const side=innerWidth>1200;const available=side?width-$('#discussion').getBoundingClientRect().width:width;
-    const availableHeight=side?height-180:height*.3-50;
-    const fit=Math.min(1,(available-40)/(bounds.right-bounds.left)/base,availableHeight/(bounds.bottom-bounds.top)/base);
-    targetZoom=clamp(fit,.3,1);
-    const cy=side?height/2:60+availableHeight/2;
-    cameraTween={from:{...pan},to:{x:-mid.x+(available/2-width/2)/(base*targetZoom),y:-mid.y+(cy-height/2)/(base*targetZoom)},start:performance.now()};
+    savedCamera??=pickerCamera?{...pickerCamera,pan:{...pickerCamera.pan}}:{pan:{...pan},zoom:targetZoom,width,height};
+    // The dialogue stage projects participants without changing the saved map.
+    cameraTween=null;
   },
-  restoreCamera(){if(savedCamera){targetZoom=savedCamera.zoom;cameraTween={from:{...pan},to:savedCamera.pan,start:performance.now()};savedCamera=null;}}
+  restoreCamera(){if(savedCamera){const previous=savedCamera;savedCamera=null;if(previous.width&&(previous.width<=700)!==(width<=700)){fitWorld(false);}else{targetZoom=previous.zoom;cameraTween={from:{...pan},to:previous.pan,start:performance.now()};}}}
 });
 const advice=new ThoughtAdvice({me,nodes,relations,store,topic:()=>currentTopic,detail:openDetail,updated(){if(selected&&$('#detail').open)advice.detail(selected);}});
-spatialPicker=setupSpatialPicker({nodes,me,motion:uiMotion,onOpen(){hideHover();pickerCamera={pan:{...pan},zoom:targetZoom};fitWorld(true);},onClose(){if(pickerCamera){if(!relations.discussion){targetZoom=pickerCamera.zoom;cameraTween={from:{...pan},to:pickerCamera.pan,start:performance.now()};}pickerCamera=null;}}});
+spatialPicker=setupSpatialPicker({nodes,me,motion:uiMotion,onOpen(){hideHover();pickerCamera={pan:{...pan},zoom:targetZoom,width,height};fitWorld(true);},onClose(){if(pickerCamera){if(!relations.discussion){targetZoom=pickerCamera.zoom;cameraTween={from:{...pan},to:pickerCamera.pan,start:performance.now()};}pickerCamera=null;}}});
 const travelProgress=now=>stage==='input'?0:stage==='world'?1:smooth((now-transitionStart)/(reduced?1:1150));
-function resize(){const previousWidth=width;width=app.clientWidth;height=app.clientHeight;app.style.setProperty('--relation-safe-top',Math.max(220,$('#world-context').getBoundingClientRect().bottom-app.getBoundingClientRect().top+18)+'px');base=clamp(Math.min(width/1000,height/850),.40,1.25);renderer?.resize(width,height);hideHover();if(relations.discussion)relations.api.frameDiscussion(relations.discussion.target,relations.discussion.source);else if(planetUI?.view==='world'&&!spatialPicker?.active){if(autoComposition)arrangeFreshWorld();else if(previousWidth&&(previousWidth<=700)!==(width<=700))fitWorld(false);}draw(performance.now(),0);}
+function resize(){const previousWidth=width;width=app.clientWidth;height=app.clientHeight;relations.cancelEncounter(false);base=clamp(Math.min(width/1000,height/850),.40,1.25);renderer?.resize(width,height);hideHover();if(relations.discussion)relations.api.frameDiscussion(relations.discussion.target,relations.discussion.source);else if(planetUI?.view==='world'&&!spatialPicker?.active){if(autoComposition)arrangeFreshWorld();else if(previousWidth&&(previousWidth<=700)!==(width<=700))fitWorld(false);}draw(performance.now(),0);}
 const ro=new ResizeObserver(resize);ro.observe(app);
 function draw(now,dt,elapsed=dt){if(planetUI?.frame(elapsed))return;
+  space.advance(dt);space.w=width;space.h=height;
+  $('#skip-world-entry').hidden=space.intro===null||stage!=='world';
+  app.dataset.entering=String(space.intro!==null);
+  if(relations.discussion){
+    const panel=$('#discussion').getBoundingClientRect(),bounds=app.getBoundingClientRect(),f=space.layout(width,height,{left:panel.left-bounds.left,top:panel.top-bounds.top,height:panel.height});
+    const caption=$('#portal-caption'),d=relations.discussion,lastMessage=d.messages.findLast(m=>['mine','other'].includes(m.kind)||m.who.startsWith('主持人'));
+    caption.hidden=false;caption.style.left=f.x+'px';caption.style.top=f.y+'px';caption.style.width=f.radius*1.4+'px';
+    const who=d.finished?'讨论结晶':d.busy?'正在组织回应':lastMessage?.who||'星间对谈';
+    const excerpt=d.finished?'把你认可的理解，带回自己的星球。':d.busy?'下一束光，正在形成。':lastMessage?.text||'两个世界，在这里交换看法。';
+    if(caption.firstElementChild.textContent!==who)caption.firstElementChild.textContent=who;
+    if(caption.lastElementChild.textContent!==excerpt.slice(0,85))caption.lastElementChild.textContent=excerpt.slice(0,85);
+  }
   if(stage==='input'){
+    space.clear();$('#encounter-progress').hidden=true;
     const entry=$('#entry').getBoundingClientRect(),bounds=app.getBoundingClientRect();
-    const top=70,space=Math.max(50,entry.top-bounds.top-top-18);
-    formationY=top+space/2;formationRadius=Math.min(188,width*.32,space*.44);
+    const top=70,freeSpace=Math.max(50,entry.top-bounds.top-top-18);
+    formationY=top+freeSpace/2;formationRadius=Math.min(188,width*.32,freeSpace*.44);
     const target=draftFill($('#knowledge').value);
     formationFill=paused?target:lerp(formationFill,target,1-Math.exp(-dt*6));
     if(!paused)me.time+=dt*1.15;
@@ -80,7 +98,7 @@ function draw(now,dt,elapsed=dt){if(planetUI?.frame(elapsed))return;
   if(stage==='world')relations.tick(dt,paused,drag?.kind==='star'?drag.node:approachFrame?me:null);
   const render=[];nearest=null;let nearDist=Infinity;
   if(stage==='world'){for(const n of nodes.slice(1)){const d=Math.hypot(n.x-me.x,n.y-me.y);const proximity=d-n.r-me.r;if(n!==relations.partner&&proximity<nearDist){nearDist=proximity;nearest=n;}}if(nearDist>90)nearest=null;}
-  const responsive=1-Math.exp(-dt*5.8);
+  const responsive=paused?0:1-Math.exp(-dt*5.8);
   const mobilePick=spatialPicker?.active&&innerWidth<=700;
   const pickerNodes=mobilePick?nodes.filter(n=>n!==me||me.body):[];
   const pickCols=3,pickRows=Math.ceil(pickerNodes.length/pickCols),pickTop=104;
@@ -95,6 +113,7 @@ function draw(now,dt,elapsed=dt){if(planetUI?.frame(elapsed))return;
     let x=centerX+(n.x+pan.x+n.dx+driftX)*scale*travelScale*p;
     let y=centerY+(n.y+pan.y+n.dy+driftY)*scale*travelScale*p;
     let r=mine?lerp(radiusIn,n.r*scale,p):n.r*scale*travelScale;
+    ({x,y,r}=space.project(n,x,y,r));
     if(mobilePick){
       const slot=pickerNodes.indexOf(n),row=Math.floor(slot/pickCols),col=slot%pickCols,cell=(width-36)/pickCols;
       const radius=clamp(Math.min(cell*.25,pickHeight/pickRows*.24),18,30);
@@ -104,9 +123,12 @@ function draw(now,dt,elapsed=dt){if(planetUI?.frame(elapsed))return;
     const participant=relations.discussion&&(n.id===relations.discussion.source.id||n.id===relations.discussion.target.id);
     const opacity=(mine?1:smooth((p-.17)/.7))*(match?1:.12)*(relations.discussion&&!participant? .15:1);
     n.sx=x;n.sy=y;n.sr=r;
-    if((mine||p>.17)&&x+r>-15&&x-r<width+15&&y+r>-15&&y-r<height+15){
+    if((!relations.discussion||participant)&&(mine||p>.17)&&x+r>-15&&x-r<width+15&&y+r>-15&&y-r<height+15){
       const effect=relations.effects.appearance(n);
-      render.push({x,y,r:r*effect.scale,time:n.time,chaos:1,glow:effect.glow,offset:n.offset,opacity,tint:n.tint});
+      const other=n===me?relations.candidate:n===relations.candidate?me:null;
+      const pressure=other&&!relations.discussion&&relations.kind(n===me?other:n)==='different'?fieldPressure(me,relations.candidate):0;
+      const angle=other?Math.atan2(other.y-n.y,other.x-n.x):0;
+      render.push({x,y,r:r*effect.scale,time:n.time,chaos:1,glow:effect.glow,offset:n.offset,opacity,tint:n.tint,pressure,fieldAxis:[Math.cos(angle),Math.sin(angle)]});
       n.el.style.display=stage==='world'?'block':'none';n.el.style.width=2*r+'px';n.el.style.height=2*r+'px';n.el.style.transform=`translate(${x-r}px,${y-r}px)`;n.el.style.opacity=opacity;
       const labelOpacity=mine||spatialPicker?.active||r>18&&match?'1':'0';if(n.label.style.opacity!==labelOpacity)n.label.style.opacity=labelOpacity;
     }else n.el.style.display='none';
@@ -114,9 +136,19 @@ function draw(now,dt,elapsed=dt){if(planetUI?.frame(elapsed))return;
   renderer?.render(render);
   if(hovered&&!$('#hover-card').matches(':hover,:focus-within'))positionHover();
   if(stage==='world')relations.draw(width,height,scale);
+  const encounter=relations.candidate,progress=$('#encounter-progress');
+  if(stage!=='world'||relations.discussion)progress.hidden=true;
+  if(!progress.hidden&&encounter){
+    progress.style.left=clamp((me.sx+encounter.sx)/2,108,width-108)+'px';
+    progress.style.top=clamp((me.sy+encounter.sy)/2+Math.max(me.sr,encounter.sr)+32,90,height-150)+'px';
+  }
   const zoomLabel=Math.round(zoom*100)+'%';if($('#zoom-value').textContent!==zoomLabel)$('#zoom-value').textContent=zoomLabel;
-  if(stage==='world')$('#hint').textContent=!me.body?'先读一颗星球，或写下自己的想法':relations.partner?'两颗星球，各自完整，一起前行':relations.candidate?'相似的观点结伴，不同的观点对话':'拖动你的星球，发现思想之间的关系';
+  if(stage==='world')$('#hint').textContent=!me.body?'写下想法，让你的星球加入这片宇宙':relations.partner?'双星共舞 · 携伴靠近异见，停留 1.5 秒进入辩论':relations.dwell.armed&&encounter&&relations.kind(encounter)==='unknown'?(advice.busy?'正在比较两种观点，继续拖动可离开':relations.suggestions.has(encounter.id)?'观点信息不足，补充想法后再相遇':'关系暂未读懂，可在上方重新分析'):'靠近并停留 1.5 秒 · 相近连接，有分歧就聊聊';
 }
+$('#skip-world-entry').addEventListener('click',()=>space.interrupt());
+const replayEntry=document.createElement('button');replayEntry.id='replay-world-entry';replayEntry.textContent='✦';replayEntry.setAttribute('aria-label','重看星间入场');replayEntry.title='重看星间入场';$('.map-controls').insertBefore(replayEntry,$('#pause'));replayEntry.addEventListener('click',()=>space.enter());
+app.addEventListener('pointerdown',()=>{space.interrupt();relations.cancelEncounter(false);},{capture:true,passive:true});
+app.addEventListener('keydown',()=>space.interrupt(),{capture:true});
 function loop(now){raf=0;if(!visible||document.hidden)return;const elapsed=Math.max(0,(now-last)/1000),dt=Math.min(elapsed,.1);last=now;if(!paused)clock+=dt;draw(now,dt,elapsed);raf=requestAnimationFrame(loop);}
 function start(){if(!raf&&visible&&!document.hidden){last=performance.now();raf=requestAnimationFrame(loop);}}
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&raf){cancelAnimationFrame(raf);raf=0;}else start();});
@@ -133,7 +165,7 @@ $('#knowledge').addEventListener('input',()=>{$('#enter').disabled=!$('#knowledg
 $('#knowledge-form').addEventListener('submit',e=>{e.preventDefault();enterWorld($('#knowledge').value);});
 $('#try-example').addEventListener('click',()=>{$('#knowledge').value=example;$('#enter').disabled=false;persist();});
 function closeComposer(){stage='world';app.dataset.stage=stage;app.dataset.composing='false';persist();}
-$('#compose').addEventListener('click',()=>{stopMovement();hideHover();relations.effects.clear();stage='input';app.dataset.stage=stage;app.dataset.composing='true';formationFill=draftFill($('#knowledge').value);$('#relation-card').hidden=true;$('#knowledge').focus();});
+$('#compose').addEventListener('click',()=>{stopMovement();hideHover();relations.effects.clear();stage='input';app.dataset.stage=stage;app.dataset.composing='true';formationFill=draftFill($('#knowledge').value);relations.cancelEncounter();$('#knowledge').focus();});
 $('#close-composer').addEventListener('click',closeComposer);
 $('#knowledge').addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();closeComposer();$('#compose').focus();}});
 function hideHover(){clearTimeout(hoverTimer);if(hovered){hovered.el.setAttribute('aria-expanded','false');hovered.el.removeAttribute('aria-controls');}hovered=null;hoverPinned=false;$('#hover-card').hidden=true;relations.configureHover(null);}
@@ -182,7 +214,7 @@ function openDetail(n){
  $('#detail-author').textContent=presentation.author;$('#detail-avatar').hidden=!presentation.avatar;if(presentation.avatar){$('#detail-avatar').src=presentation.avatar;$('#detail-avatar').alt=presentation.author+'的头像';}
  $('#detail-meta').textContent=presentation.date;$('#detail-link').hidden=!presentation.url;$('#detail-link').textContent=presentation.linkLabel;if(presentation.url)$('#detail-link').href=presentation.url;
  $('#detail-navigation').hidden=n===me;updateAnswerNavigation(n,'detail');
- $('#approach').hidden=n===me||n===relations.partner;$('#edit-knowledge').hidden=n!==me;$('#edit-form').hidden=true;$('#detail-pair').hidden=n===me;$('#detail-pair').disabled=!me.body;$('#detail-pair').textContent=me.body?'确认相近并结伴':'先写下我的想法，再结伴';$('#detail-debate').hidden=n===me;$('#detail-debate').textContent=me.body?(relations.partner&&relations.partner!==n?'携伴聊聊这个观点 ↗':'和我的观点聊聊 ↗'):'选两颗球对谈 ↗';
+ $('#approach').hidden=n===me||n===relations.partner;$('#edit-knowledge').hidden=n!==me;$('#edit-form').hidden=true;$('#detail-debate').hidden=n===me;$('#detail-debate').textContent=me.body?(relations.partner&&relations.partner!==n?'携伴聊聊这个观点 ↗':'和我的观点聊聊 ↗'):'选两颗球对谈 ↗';
  detailTransition.open(n);
 }
 function updateAnswerNavigation(n,prefix){
@@ -209,17 +241,17 @@ function pauseState(){const b=$('#pause');b.textContent=paused?'▷':'Ⅱ';b.set
 function zoomAt(newZoom,x,y){const rect=app.getBoundingClientRect();x-=rect.left;y-=rect.top;const before=zoom;newZoom=clamp(newZoom,.45,2.2);pan.x+=(x-width/2)/base*(1/newZoom-1/before);pan.y+=(y-height/2)/base*(1/newZoom-1/before);zoom=targetZoom=newZoom;cameraTween=null;hideHover();}
 app.addEventListener('wheel',e=>{if(planetUI?.view!=='world'||stage!=='world'||!e.target.closest('#universe,#node-layer,.node'))return;e.preventDefault();zoomAt(zoom*Math.exp(-clamp(e.deltaY,-100,100)*.0015),e.clientX,e.clientY);},{passive:false});
 app.addEventListener('pointerdown',e=>{if(planetUI?.view!=='world'||stage!=='world'||spatialPicker?.active||!e.target.closest('#universe,.node'))return;if(e.button!==0)return;e.preventDefault();suppressClick=0;if(approachFrame)cancelAnimationFrame(approachFrame);approachFrame=0;lastPointerType=e.pointerType;const node=nodes.find(n=>n.el===e.target.closest('.node'));pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});e.target.setPointerCapture(e.pointerId);if(pointers.size===2){const [a,b]=[...pointers.values()];pinch={distance:Math.hypot(a.x-b.x,a.y-b.y),zoom,mid:{x:(a.x+b.x)/2,y:(a.y+b.y)/2}};drag=null;hideHover();return;}drag={id:e.pointerId,kind:node===me||node===relations.partner?'star':node?'click':'pan',node,startX:e.clientX,startY:e.clientY,lastX:e.clientX,lastY:e.clientY,moved:false};cameraTween=null;});
-app.addEventListener('pointermove',e=>{if(!pointers.has(e.pointerId))return;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pointers.size===2&&pinch){const [a,b]=[...pointers.values()],mx=(a.x+b.x)/2,my=(a.y+b.y)/2;zoomAt(pinch.zoom*Math.hypot(a.x-b.x,a.y-b.y)/Math.max(1,pinch.distance),mx,my);pan.x+=(mx-pinch.mid.x)/(base*zoom);pan.y+=(my-pinch.mid.y)/(base*zoom);pinch.mid={x:mx,y:my};suppressClick=performance.now()+500;return;}if(!drag||drag.id!==e.pointerId)return;const dx=e.clientX-drag.lastX,dy=e.clientY-drag.lastY;if(Math.hypot(e.clientX-drag.startX,e.clientY-drag.startY)>5)drag.moved=true;if(drag.moved){hideHover();canvas.style.cursor='grabbing';if(drag.kind==='star'){drag.node.x+=dx/(base*zoom);drag.node.y+=dy/(base*zoom);}else if(drag.kind==='pan'){pan.x+=dx/(base*zoom);pan.y+=dy/(base*zoom);}}drag.lastX=e.clientX;drag.lastY=e.clientY;});
-function pointerEnd(e){const preview=e.type==='pointerup'&&drag?.id===e.pointerId&&drag.moved&&drag.kind==='star';pointers.delete(e.pointerId);if(pinch){pinch=null;drag=null;suppressClick=performance.now()+400;}if(drag?.id===e.pointerId){if(drag.moved){suppressClick=performance.now()+400;if(drag.kind==='star'&&nearest)$('#announcer').textContent=`已靠近${nearest.title}，可以查看观点`; }else if(drag.kind==='pan')hideHover();drag=null;}canvas.style.cursor='grab';relations.released(preview);}
+app.addEventListener('pointermove',e=>{if(!pointers.has(e.pointerId))return;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pointers.size===2&&pinch){const [a,b]=[...pointers.values()],mx=(a.x+b.x)/2,my=(a.y+b.y)/2;zoomAt(pinch.zoom*Math.hypot(a.x-b.x,a.y-b.y)/Math.max(1,pinch.distance),mx,my);pan.x+=(mx-pinch.mid.x)/(base*zoom);pan.y+=(my-pinch.mid.y)/(base*zoom);pinch.mid={x:mx,y:my};suppressClick=performance.now()+500;return;}if(!drag||drag.id!==e.pointerId)return;const dx=e.clientX-drag.lastX,dy=e.clientY-drag.lastY;if(Math.hypot(e.clientX-drag.startX,e.clientY-drag.startY)>5)drag.moved=true;if(drag.moved){hideHover();canvas.style.cursor='grabbing';if(drag.kind==='star'){const delta=dragThroughField(drag.node,dx/(base*zoom),dy/(base*zoom),drag.node===me?nodes.filter(n=>n!==me&&relations.kind(n)==='different'):[]);drag.node.x+=delta.x;drag.node.y+=delta.y;}else if(drag.kind==='pan'){pan.x+=dx/(base*zoom);pan.y+=dy/(base*zoom);}}drag.lastX=e.clientX;drag.lastY=e.clientY;});
+function pointerEnd(e){const preview=e.type==='pointerup'&&drag?.id===e.pointerId&&drag.moved&&drag.kind==='star';pointers.delete(e.pointerId);if(pinch){pinch=null;drag=null;suppressClick=performance.now()+400;}if(drag?.id===e.pointerId){if(drag.moved){suppressClick=performance.now()+400;if(drag.kind==='star'&&nearest)$('#announcer').textContent=`已靠近${nearest.title}，可以查看观点`; }else if(drag.kind==='pan')hideHover();drag=null;}canvas.style.cursor='grab';if(e.type==='pointercancel')relations.cancelEncounter();else relations.released(preview);}
 app.addEventListener('pointerup',pointerEnd);app.addEventListener('pointercancel',pointerEnd);
 $('#approach').addEventListener('click',()=>{
   if(!selected||selected===me)return;
-  stopMovement();const target=selected;$('#detail').close();
+  stopMovement();relations.cancelEncounter();const target=selected;$('#detail').close();hideHover();$('#search').value='';search('');
   const distance=target.r+me.r+42,dx=me.x-target.x,dy=me.y-target.y,len=Math.hypot(dx,dy)||1;
   const from={x:me.x,y:me.y},to={x:target.x+(dx/len||-1)*distance,y:target.y+dy/len*distance};
   const began=performance.now();
   const move=now=>{const p=smooth((now-began)/(reduced?1:1100));me.x=lerp(from.x,to.x,p);me.y=lerp(from.y,to.y,p);
-    if(p<1)approachFrame=requestAnimationFrame(move);else{approachFrame=0;relations.released(true);}};
+    if(p<1)approachFrame=requestAnimationFrame(move);else{approachFrame=0;relations.released(true,target);}};
   approachFrame=requestAnimationFrame(move);
 });
 function search(value){query=value.trim().toLowerCase();const results=$('#search-results');results.replaceChildren();results.hidden=!query;if(!query)return;const matches=nodes.filter(n=>n.title.toLowerCase().includes(query)||n.author.toLowerCase().includes(query)||n.body.toLowerCase().includes(query));if(!matches.length){const p=document.createElement('p');p.textContent='没有找到相关观点';results.append(p);}for(const n of matches){const b=document.createElement('button');b.textContent=n===me?'我的知识':n.title;b.addEventListener('click',()=>{cameraTween={from:{...pan},to:{x:-n.x,y:-n.y},start:performance.now()};openDetail(n);results.hidden=true;});results.append(b);}}
@@ -230,12 +262,12 @@ document.addEventListener('keydown',e=>{if(e.target.matches('input,textarea')||$
 function persist(){
  if(switching||!topicReady)return;
  const old=store.get(currentTopic.id);
- const patch={title:currentTopic.title,draft:$('#knowledge').value,input:me.body,overrides:[...relations.overrides],partner:relations.partner?.id||null,positions:nodes.map(n=>({id:n.id,x:n.x,y:n.y,r:n.r})),camera:pickerCamera?{pan:{...pickerCamera.pan},zoom:pickerCamera.zoom}:savedCamera?{pan:{...savedCamera.pan},zoom:savedCamera.zoom}:{pan:{...pan},zoom:targetZoom}};
- patch.camera.viewport={width,height};
+ const patch={title:currentTopic.title,draft:$('#knowledge').value,input:me.body,overrides:[...relations.overrides],partner:relations.partner?.id||null,pairOffset:relations.partner?{...relations.offset}:null,positions:nodes.map(n=>({id:n.id,x:n.x,y:n.y,r:n.r})),camera:pickerCamera?{pan:{...pickerCamera.pan},zoom:pickerCamera.zoom}:savedCamera?{pan:{...savedCamera.pan},zoom:savedCamera.zoom}:{pan:{...pan},zoom:targetZoom}};
+ patch.camera.viewport={width:pickerCamera?.width||savedCamera?.width||width,height:pickerCamera?.height||savedCamera?.height||height};
  if(relations.discussion&&!relations.discussion.saved)patch.discussion={...relations.snapshot(),hostDraft:$('#interrupt-text').value};
  store.update(currentTopic.id,patch);renderTopics();$('#resume-discussion').hidden=!old.discussion||!!relations.discussion;
 }
-function saveRecord(record){uiMotion.clear();store.addRecord(currentTopic.id,record);if(record.note&&record.change!=='keep'){relations.setInput(record.note);advice.clear();store.addOpinion(currentTopic.id,record.note);me.body=record.note;me.claim=record.note;$('#knowledge').value=record.note;store.update(currentTopic.id,{analysis:null,input:record.note,overrides:[],partner:null});}store.update(currentTopic.id,{discussion:null});renderTopics();$('#resume-discussion').hidden=true;planetUI?.onSave({kind:'record',origin:$('#save-record').getBoundingClientRect()});return !store.failed;}
+function saveRecord(record){uiMotion.clear();store.addRecord(currentTopic.id,record);if(record.note&&record.change!=='keep'){relations.setInput(record.note);advice.clear();store.addOpinion(currentTopic.id,record.note);me.body=record.note;me.claim=record.note;$('#knowledge').value=record.note;store.update(currentTopic.id,{analysis:null,input:record.note,overrides:[],partner:null});}store.update(currentTopic.id,{discussion:null});renderTopics();$('#resume-discussion').hidden=true;const portal=space.portalFrame,bounds=app.getBoundingClientRect();planetUI?.onSave({kind:'record',origin:portal?{left:bounds.left+portal.x,top:bounds.top+portal.y,width:0,height:0}:$('#save-record').getBoundingClientRect()});return !store.failed;}
 function markRead(n){if(n===me)return;captureSource(store,currentTopic.id,n);const state=store.get(currentTopic.id);if(!state.read.includes(n.id)){state.read.push(n.id);store.save();renderTopics();}}
 function renderTopics(){
  const list=$('#topic-list'),q=$('#topic-search').value.trim().toLowerCase();list.replaceChildren();
@@ -274,22 +306,22 @@ function populateTopic(){
  $('#resume-discussion').hidden=!store.get(currentTopic.id).discussion;
 }
 async function selectTopic(id,{historyMode='push',force=false}={}){
- const next=catalog.find(t=>t.id===id)||catalog[0];if(historyMode!=='none'&&planetUI){const url=new URL(location.href);url.searchParams.delete('topic');url.hash='/world/'+encodeURIComponent(next.id);history[historyMode==='replace'?'replaceState':'pushState']({},'',url);planetUI.showWorld(next.id);}if(!force&&next.id===currentTopic.id&&nodes.length>1){closeTopics();return;}
+ const next=catalog.find(t=>t.id===id)||catalog[0];if(historyMode!=='none'&&planetUI){const url=new URL(location.href);url.searchParams.delete('topic');url.hash='/world/'+encodeURIComponent(next.id);history[historyMode==='replace'?'replaceState':'pushState']({},'',url);planetUI.showWorld(next.id);}if(!force&&next.id===currentTopic.id&&nodes.length>1){closeTopics();space.enter();return;}
  persist();advice.cancel();uiMotion.clear();cancelSourceSync();const request=loads.begin();switching=true;stopMovement();relations.reset();
  document.querySelectorAll('dialog[open]').forEach(d=>d.close());hideHover();app.inert=false;stage='world';app.dataset.stage=stage;app.dataset.composing='false';query='';$('#search').value='';$('#search-results').hidden=true;pendingCondition='';
  currentTopic=next;store.data.lastTopic=next.id;store.save();
  // The scene controller owns hash navigation; topic changes retain their camera.
  const session=store.get(next.id);me.body=session.input||'';me.claim=me.body;me.topicId=next.id;me.x=0;me.y=0;$('#knowledge').value=session.draft||session.input||'';$('#enter').disabled=!$('#knowledge').value.trim();
- answers=styleAnswers(next.answers);loadInfo={};installNodes(session);topicReady=true;populateTopic();renderTopics();closeTopics();switching=false;resize();if(autoComposition)arrangeFreshWorld();start();
+ answers=styleAnswers(next.answers);loadInfo={};installNodes(session);topicReady=true;populateTopic();renderTopics();closeTopics();switching=false;resize();if(autoComposition)arrangeFreshWorld();space.enter();start();
  const controller=loads.controller;const timeout=setTimeout(()=>controller.abort(),6000);
  try{const data=await loadAnswers(next,request.signal);if(!request.current())return;loadInfo=data;if(data.syncedAt){persist();answers=data.answers;installNodes(store.get(next.id));}populateTopic();}catch{if(request.current())$('#case-status').textContent+=' · 在线缓存读取失败';}finally{clearTimeout(timeout);}
 }
 function installNodes(session){
  autoComposition=!session.positions?.length||!me.body;
  nodes.splice(1,nodes.length-1,...answers);for(const saved of session.positions||[]){const n=nodes.find(n=>n.id===saved.id);if(n&&Number.isFinite(saved.x)&&Number.isFinite(saved.y)){n.x=saved.x;n.y=saved.y;if(Number.isFinite(saved.r)&&saved.r>=20&&saved.r<=250)n.r=saved.r;}}
- mountNodes();relations.refreshPicker();relations.overrides=new Map(session.overrides||[]);relations.candidate=null;relations.dismissed=null;relations.cardKey='';relations.partner=null;
+ mountNodes();relations.refreshPicker();relations.overrides=new Map(session.overrides||[]);relations.candidate=null;relations.dismissed=null;relations.cancelEncounter();relations.partner=null;
  relations.effects.clear();
- const partner=nodes.find(n=>n.id===session.partner);if(partner&&me.body){relations.candidate=partner;relations.overrides.set(partner.id,'similar');relations.act({feedback:false});}
+ const partner=nodes.find(n=>n.id===session.partner);if(partner&&me.body){relations.candidate=partner;relations.act({feedback:false,node:partner,restored:true});if(session.pairOffset&&['x','y'].every(k=>Number.isFinite(session.pairOffset[k])&&Math.abs(session.pairOffset[k])<1500))relations.offset={...session.pairOffset};}
  advice.restore(session.analysis);
  pan=session.camera?.pan?{...session.camera.pan}:{x:0,y:0};zoom=targetZoom=session.camera?.zoom||1;cameraTween=null;savedCamera=null;
  const savedWidth=session.camera?.viewport?.width;
@@ -303,7 +335,7 @@ function arrangeFreshWorld(){
   // A loose constellation leaves room for the larger personal sphere at its centre.
   const bottom=height-225,span=Math.max(180,bottom-top),slots=[[.12,.25],[.46,.06],[.61,.22],[.87,.29],[.13,.85],[.36,.92],[.63,.89],[.87,.96]];
   zoom=targetZoom=1;pan={x:0,y:0};cameraTween=null;
-  const radius=clamp(Math.min(width*.043,span*.15),30,56);
+  const radius=clamp(Math.min(width*.056,span*.21),36,68);
   others.forEach((n,i)=>{const [x,y]=slots[i];n.x=(width*x-width/2)/base;n.y=(top+span*y-height/2)/base;n.r=radius/base;});
   me.x=0;me.y=(top+span*.53-height/2)/base;me.r=radius*1.62/base;
   draw(performance.now(),0);return;
@@ -330,7 +362,6 @@ function fitWorld(picking=false){
 }
 function openCase(){refreshConnectionStatus();$('#case-info').showModal();}
 $('#open-case').addEventListener('click',openCase);$('#topic-rules').addEventListener('click',openCase);$('#close-case').addEventListener('click',()=>$('#case-info').close());
-$('#detail-pair').addEventListener('click',()=>{if(!selected||!me.body)return;relations.unlink(false);relations.overrides.set(selected.id,'similar');relations.candidate=selected;relations.act();$('#detail').close();hideHover();persist();});
 $('#detail-debate').addEventListener('click',()=>{$('#detail').close();if(me.body)relations.openDiscussion(selected);else relations.chooseAgents(selected);});
 $('#resume-discussion').addEventListener('click',()=>{const d=store.get(currentTopic.id).discussion;if(d){const record=structuredClone(d);relations.restore(record);$('#interrupt-text').value=record.hostDraft||'';}});
 for(const id of ['record-note','record-common','record-change','interrupt-text'])$('#'+id).addEventListener('input',persist);
@@ -379,10 +410,12 @@ planetUI=setupPlanet({store,catalog,renderer:()=>renderer,motion:uiMotion,
  loadTopic:id=>selectTopic(id,{historyMode:'none'}),
  setPaused(value){paused=value;if(paused)uiMotion.clear();pauseState();},
  stop(){visible=false;if(raf)cancelAnimationFrame(raf);raf=0;ro.disconnect();stopMovement();relations.stopAgent();},
- leaveWorld(){persist();uiMotion.clear();advice.cancel();cancelSourceSync();relations.effects.clear();planetUI?.audio.cancelCues('effects');stage='world';app.dataset.stage=stage;app.dataset.composing='false';stopMovement();hideHover();if(relations.discussion)relations.closeDiscussion();if(cameraTween){pan={...cameraTween.to};cameraTween=null;}zoom=targetZoom;persist();},
+ leaveWorld(){relations.cancelEncounter();persist();uiMotion.clear();space.clear();advice.cancel();cancelSourceSync();relations.effects.clear();planetUI?.audio.cancelCues('effects');stage='world';app.dataset.stage=stage;app.dataset.composing='false';stopMovement();hideHover();if(relations.discussion)relations.closeDiscussion();if(cameraTween){pan={...cameraTween.to};cameraTween=null;}zoom=targetZoom;persist();},
  continueRecord(record){const copy=structuredClone(record);copy.id=crypto.randomUUID();copy.finished=false;copy.turn=0;copy.messages=[{who:'材料 A · '+copy.source.author,text:copy.source.body,kind:'note'},{who:'材料 B · '+copy.target.author,text:copy.target.body,kind:'note'}];copy.note='';copy.common='';copy.change='keep';copy.summary=null;relations.restore(copy);}
 });
 document.body.append($('#profile'));
 // Read-only diagnostics used by the local acceptance checks; no private text exposed.
+document.addEventListener('visibilitychange',()=>relations.cancelEncounter(false));
+addEventListener('blur',()=>relations.cancelEncounter());
 window.planetDiagnostics=()=>({...planetUI.debug(),interactions:relations.effects.debug()});
 await planetUI.init();resize();start();

@@ -33,16 +33,21 @@ export async function verifyInteractionAudio(page) {
 
 // Run after the interaction check, with an existing personal opinion in the
 // isolated browser session. Exercise the browser's real suspended AudioContext.
-export async function verifyPlaybackControls(page) {
+export async function verifyPlaybackControls(page,similarId) {
+  assert.ok(similarId,'provide an already content-classified similar planet');
+  const approach=async()=>{
+    await page.press(`[data-node="${similarId}"]`,'Enter');await page.click('#approach');
+    await page.waitForFunction(()=>document.querySelector('#app').dataset.paired==='true');
+  };
   const before=await page.evaluate(()=>planetDiagnostics().audio.events.length);
   await page.click('#sound-toggle');
-  await page.press('[data-node="flight"]','Enter');await page.click('#detail-pair');
+  await approach();
   await page.click('#unlink');
   assert.equal(await page.evaluate(()=>planetDiagnostics().audio.events.length),before);
   await page.click('#sound-toggle');
   await page.cdp('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});
   await page.waitForFunction(()=>document.querySelector('#app').dataset.paused==='true');
-  await page.press('[data-node="flight"]','Enter');await page.click('#detail-pair');
+  await approach();
   assert.deepEqual(await page.evaluate(()=>planetDiagnostics().interactions.active),[]);
   assert.equal(await page.evaluate(()=>document.querySelector('#app').dataset.paired),'true');
   const pairs=await page.evaluate(()=>planetDiagnostics().audio.events.filter(e=>e.name==='pair').length);
