@@ -1,5 +1,6 @@
 """Local preview + server-side OpenAI-compatible agent turn adapter.
-Configure AGENT_API_KEY, AGENT_API_BASE (ending in /v1), AGENT_MODEL.
+Configure AGENT_API_KEY, AGENT_API_BASE, AGENT_MODEL in the environment or
+the repository-root .env.local (outside the public web directory).
 Secrets never enter the browser. No dependencies required.
 """
 import json
@@ -12,14 +13,31 @@ import zhihu_api
 import thought_tasks
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from urllib.request import Request, urlopen
+from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse, parse_qs, unquote
 
 ROOT = Path(__file__).resolve().parent
+
+def load_local_config(path=ROOT.parent / '.env.local'):
+    """Load only agent settings; never evaluate shell syntax or replace process env."""
+    allowed = {'AGENT_API_KEY', 'AGENT_API_BASE', 'AGENT_MODEL', 'AGENT_DEFAULT_PROVIDER'}
+    if not path.is_file():
+        return
+    for line in path.read_text(encoding='utf-8').splitlines():
+        key, separator, value = line.strip().partition('=')
+        if separator and key.strip() in allowed:
+            value = value.strip()
+            if len(value) >= 2 and value[0] == value[-1] and value[0] in ('"', "'"):
+                value = value[1:-1]
+            os.environ.setdefault(key.strip(), value)
 
 def configured():
     return all(os.environ.get(k) for k in ('AGENT_API_KEY', 'AGENT_API_BASE', 'AGENT_MODEL'))
 
 def default_provider():
+    preferred = os.environ.get('AGENT_DEFAULT_PROVIDER', 'auto')
+    if preferred in ('compatible', 'zhihu'):
+        return preferred
     return 'zhihu' if zhihu_api.secret() else 'compatible' if configured() else None
 
 def build_messages(data):
@@ -90,7 +108,8 @@ class Handler(SimpleHTTPRequestHandler):
     def do_GET(self):
         if self.path == '/api/agent/status':
             return self.reply(200, {'configured': configured(), 'zhihuConfigured': bool(zhihu_api.secret()),
-                                    'defaultProvider': default_provider()})
+                                    'defaultProvider': default_provider(),
+                                    'model': os.environ.get('AGENT_MODEL') if configured() else None})
         parsed = urlparse(self.path)
         if parsed.path in ('/api/case', '/api/zhihu/status'):
             topic_id = parse_qs(parsed.query).get('topicId', ['robotaxi'])[0]
@@ -183,16 +202,34 @@ def generate(messages, provider='auto', structured=False):
         parsed = urlparse(base)
         if parsed.scheme != 'https' and parsed.hostname not in ('127.0.0.1', 'localhost'):
             raise ValueError('Use HTTPS for remote providers')
-        payload = json.dumps({'model': os.environ['AGENT_MODEL'], 'messages': messages, 'max_tokens': 4500 if structured else 600}).encode()
+        payload = {'model': os.environ['AGENT_MODEL'], 'messages': messages,
+                   'max_tokens': 4500 if structured else 600, 'stream': False}
+        if parsed.hostname == 'api.deepseek.com':
+            # These short turns need an answer within the UI timeout/token budget.
+            payload['thinking'] = {'type': 'disabled'}
+            if structured:
+                payload['response_format'] = {'type': 'json_object'}
+        payload = json.dumps(payload).encode()
         req = Request(base + '/chat/completions', data=payload, headers={
             'Authorization': 'Bearer ' + os.environ['AGENT_API_KEY'], 'Content-Type': 'application/json'})
         with urlopen(req, timeout=55) as response:
             result = json.load(response)
-        content = result['choices'][0]['message']['content']
+        choice = result['choices'][0]
+        if choice.get('finish_reason') == 'length':
+            raise zhihu_api.APIError('模型回复未生成完整，未新增发言。请缩短补充条件后重试。')
+        content = choice['message']['content']
         if not isinstance(content, str) or not content.strip():
             raise ValueError('Empty model response')
-        return {'text': content[:24000], 'provider': 'compatible', 'model': os.environ['AGENT_MODEL'],
+        return {'text': content[:24000], 'provider': 'compatible', 'model': result.get('model') or os.environ['AGENT_MODEL'],
                 'requestId': str(result.get('id', ''))[:200], 'generatedAt': time.time(), 'fromCache': False}
+    except zhihu_api.APIError:
+        raise
+    except HTTPError as error:
+        message = {401: '模型密钥无效，请检查服务端配置。', 402: '模型账户余额不足，请充值后重试。',
+                   429: '模型请求过于频繁，请稍后重试。'}.get(error.code, '模型服务暂时不可用，请稍后重试。')
+        raise zhihu_api.APIError(message, error.code if error.code in (401, 402, 429) else 502) from None
+    except (URLError, TimeoutError):
+        raise zhihu_api.APIError('模型连接失败或超时，未新增发言。请稍后重试。', 504) from None
     except Exception:
         raise zhihu_api.APIError('模型暂时未返回有效内容，请检查服务配置后重试。') from None
 
@@ -201,5 +238,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--port', type=int, default=8081)
     args = parser.parse_args()
+    load_local_config()
     print(f'Thought world: http://127.0.0.1:{args.port}', flush=True)
     ThreadingHTTPServer(('127.0.0.1', args.port), Handler).serve_forever()

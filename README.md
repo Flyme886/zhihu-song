@@ -24,13 +24,22 @@
 
 当前开发版本包含 **9 个话题、34 条知乎原回答**。所有答案星球都采用核对过的原始正文，保留作者、段落、配图和原文链接；统一 9:16 卡片支持上一条、下一条切换，长文可滚动及展开阅读。旧的概括和策划回答已退出当前画布，历史讨论快照保留当时内容。
 
-在线取材与对谈保留真实知乎 API 接入。问题回答与搜索接口返回的是摘要，新发现但尚未核对全文的回答仅在来源面板提供原文入口；它们不会覆盖已有原文或伪装成完整回答。萝卜快跑继续限定 2024 年历史讨论。实时对谈默认优先知乎直答，离线演示需明确选择。此前真实调用记录见 [演示 API 接入验收](docs/思想引力场_演示API接入验收_2026-09-11.md)，原文替换与阅读验收见 [原回答卡片验收](docs/planet/original-answers-2026-09-11.md)。
+在线取材与对谈保留真实知乎 API 接入。问题回答与搜索接口返回的是摘要，新发现但尚未核对全文的回答仅在来源面板提供原文入口；它们不会覆盖已有原文或伪装成完整回答。萝卜快跑继续限定 2024 年历史讨论。实时对谈按服务端默认模型配置选择，离线演示需明确选择。此前真实调用记录见 [演示 API 接入验收](docs/思想引力场_演示API接入验收_2026-09-11.md)，原文替换与阅读验收见 [原回答卡片验收](docs/planet/original-answers-2026-09-11.md)。
 
 运行：`npm --prefix web run dev`，打开 `http://127.0.0.1:8081`。测试：`npm --prefix web test`；`PYTHONPYCACHEPREFIX=/tmp/zhihu-pycache python3 -m unittest discover -s web/tests -p 'test_*.py'`。
 
 知乎适配器只在服务端读取 `ZHIHU_ACCESS_SECRET` 或 `ZHIHU_SECRET_FILE`（默认 `/tmp/zhihu-probe/.secret`）。每次取材最多两次上游请求，结果缓存24小时；页面刷新只读取缓存，另有主动重新获取入口。直答默认 `zhida-fast-1p5`，使用 model/messages/stream 正式参数。配置与真实调用成功是两个不同状态。
 
-也保留 OpenAI 兼容模型配置：`AGENT_API_KEY`、`AGENT_API_BASE`（以 `/v1` 结尾）、`AGENT_MODEL`。自动模式只按配置选择服务，真实请求失败时不回退模板；离线演练由用户自行选择。
+Agent 对谈支持 OpenAI 兼容接口。启动时读取仓库根目录的 `.env.local`（不在公开的 `web/` 目录内，已被 Git 忽略），进程环境变量优先。DeepSeek 配置示例：
+
+```dotenv
+AGENT_API_KEY=在本机填写密钥
+AGENT_API_BASE=https://api.deepseek.com
+AGENT_MODEL=deepseek-flash
+AGENT_DEFAULT_PROVIDER=compatible
+```
+
+修改配置后重新执行 `npm --prefix web run dev`。`AGENT_DEFAULT_PROVIDER=compatible` 让自动对谈、观点分析和讨论整理使用此模型；未指定默认服务时仍优先知乎直答。DeepSeek 对谈使用非思考模式，整理任务启用 JSON 输出。模型名应以账号 `/models` 接口为准（[官方接口说明](https://api-docs.deepseek.com/api/create-chat-completion/)）。`/api/agent/status` 只返回配置状态与模型名；是否实际可用以真实回复为准。真实请求失败时不回退模板，余额不足、限流和超时会显示原因，离线演练由用户自行选择。
 
 当前仅本机预览，未发布公网。[API核验、实现与验收状态](docs/萝卜快跑_知乎API调研与案例接入_2026-09-11.md)。原兰大摘录归档在 `web/cases/lanzhou-archive.js`。
 

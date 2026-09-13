@@ -61,7 +61,7 @@
     <h1 id="discussion-heading">聊聊这个问题</h1>
     <div id="discussion-companion" hidden></div><p class="discussion-sub"><b id="discussion-speaker">Agent A</b> <span>×</span> <span id="discussion-target"></span></p>
     <div class="discussion-steps" aria-label="讨论进度"><span class="discussion-step active">01 说清楚</span><i></i><span class="discussion-step">02 问关键</span><i></i><span class="discussion-step">03 留下来</span></div>
-    <label class="live-mode-label" for="discussion-mode">对谈方式</label><select id="discussion-mode"><option value="auto">实时对谈 · 优先知乎直答</option><option value="zhihu">知乎直答</option><option value="live">实时 Agent</option><option value="demo">离线演示 · 预设发言</option></select><p id="discussion-source"></p>
+    <label class="live-mode-label" for="discussion-mode">对谈方式</label><select id="discussion-mode"><option value="auto">实时对谈 · 默认模型</option><option value="zhihu">知乎直答</option><option value="live">实时 Agent</option><option value="demo">离线演示 · 预设发言</option></select><p id="discussion-source"></p>
     <div id="discussion-live"><div id="discussion-log" role="log" aria-live="polite" aria-label="讨论内容"></div>
       <p id="agent-status" role="status"></p><div class="turn-actions"><button id="auto-turn" class="text-button">自动对谈</button><button id="next-turn" class="text-button">听听另一种看法 →</button><button id="finish-discussion" class="text-button">结束并整理</button></div>
       <details id="scenario-details"><summary>换个条件，再想一步 <span>＋</span></summary><div id="scenario-prompts" aria-label="假设条件，仅在点击加入讨论后生效"></div></details><form id="interrupt-form"><label for="interrupt-text">你来主持，随时补充条件。</label><textarea id="interrupt-text" placeholder="向两位 Agent 补充条件或问题…" maxlength="600" rows="2" required></textarea><button class="enter-button" type="submit">加入讨论 ↗</button></form>
@@ -75,7 +75,7 @@
     <h1 id="picker-heading">让这两种看法聊聊。</h1><p id="selection-instruction">点击画布上的星球，换一个对谈对象。</p>
     <form id="agent-form">
       <div id="agent-selection-stage"><button type="button" class="selection-planet" data-slot="a"><span class="selection-planet-orb" aria-hidden="true"></span><small>观点 A</small><span class="selection-planet-name"></span></button><span class="selection-stage-link" aria-hidden="true">↔</span><button type="button" class="selection-planet" data-slot="b"><span class="selection-planet-orb" aria-hidden="true"></span><small>观点 B</small><span class="selection-planet-name"></span></button></div>
-      <details id="picker-settings"><summary>对谈设置与来源选择</summary><div class="picker-preferences"><label for="agent-a">观点 A</label><select id="agent-a"></select><label for="agent-b">观点 B</label><select id="agent-b"></select><label for="agent-mode">对谈方式</label><select id="agent-mode"><option value="auto">实时对谈 · 优先知乎直答</option><option value="zhihu">知乎直答</option><option value="live">实时 Agent</option><option value="demo">离线演示 · 预设发言</option></select></div></details>
+      <details id="picker-settings"><summary>对谈设置与来源选择</summary><div class="picker-preferences"><label for="agent-a">观点 A</label><select id="agent-a"></select><label for="agent-b">观点 B</label><select id="agent-b"></select><label for="agent-mode">对谈方式</label><select id="agent-mode"><option value="auto">实时对谈 · 默认模型</option><option value="zhihu">知乎直答</option><option value="live">实时 Agent</option><option value="demo">离线演示 · 预设发言</option></select></div></details>
       <p id="picker-status" role="status">AI 基于材料生成 · 非原答主发言</p><button id="begin-agents" class="enter-button" type="submit">开始对谈 ↗</button>
     </form>
   </dialog>

@@ -303,17 +303,22 @@ export class Relationships {
       const response=await fetch('/api/agent/status',{signal:AbortSignal.timeout(5000)});
       const status=response.ok?await response.json():{configured:false};
       if(pickerToken!==this.pickerToken||!$('#agent-picker').open)return;
+      this.agentStatus=status;
       const option=$('#agent-mode option[value="live"]');option.disabled=!status.configured;
-      option.textContent=status.configured?'实时 Agent · 模型已配置':'实时 Agent · 尚未配置模型';
+      option.textContent=status.configured?`实时 Agent · ${status.model||'模型已配置'}`:'实时 Agent · 尚未配置模型';
+      const defaultName=status.defaultProvider==='compatible'?status.model:status.defaultProvider==='zhihu'?'知乎直答':null;
+      $('#agent-mode option[value="auto"]').textContent=defaultName?`实时对谈 · ${defaultName}`:'实时对谈 · 默认模型';
       const zhihu=$('#agent-mode option[value="zhihu"]');zhihu.disabled=!status.zhihuConfigured;
       zhihu.textContent=status.zhihuConfigured?'知乎直答 · 凭证已配置':'知乎直答 · 尚未配置凭证';
-      $('#picker-status').textContent=status.zhihuConfigured?'知乎直答可用 · AI 基于材料生成':status.configured?'实时模型可用 · AI 基于材料生成':'实时对谈未配置，可选择离线演示。';
+      $('#picker-status').textContent=defaultName?`${defaultName} 已配置 · AI 基于材料生成`:'实时对谈未配置，可选择离线演示。';
     } catch {if(pickerToken===this.pickerToken&&$('#agent-picker').open)$('#picker-status').textContent='服务状态读取失败，可重试实时对谈或选择离线演示。';}
   }
   describeMode(){
     const mode=this.discussion.mode;
     $('#discussion-mode').value=mode;
-    $('#discussion-source').textContent=mode==='demo'?'离线演示 · 预设发言':mode==='zhihu'?'知乎直答生成 · 非原答主发言':mode==='live'?'实时模型生成 · 非原答主发言':'AI 对谈 · 优先知乎直答 · 非原答主发言';
+    const model=mode==='live'||mode==='auto'&&this.agentStatus?.defaultProvider==='compatible'?this.agentStatus?.model:null;
+    $('#discussion-source').textContent=mode==='demo'?'离线演示 · 预设发言':mode==='zhihu'?'知乎直答生成 · 非原答主发言':`${model||'AI 实时对谈'} · 非原答主发言`;
+    if($('#discussion-provider'))$('#discussion-provider').textContent=$('#discussion-source').textContent+' · 设置';
   }
   openDiscussion(target, source=this.api.me, mode=this.preferredMode) {
     this.effects.clear();
@@ -372,7 +377,11 @@ export class Relationships {
       if(d.mode==='demo'&&d.companion&&speaker===d.source)text+='\n\n离线材料提示 · 同伴关注：'+(d.companion.analysis?.claim||d.companion.claim||d.companion.body.slice(0,160));
       if(this.discussion!==d||d.finished||request.signal.aborted||d.request!==request)return;
       this.addMessage(`${d.turn%2===0?'A':'B'} · ${speaker.author} 的 Agent`,text,d.turn%2===0?'mine':'other',true,metadata);
-      d.turn++;this.updateSteps();if(d.turn===2)this.api.event?.('two-turns');this.api.changed?.();$('#agent-status').textContent=`${d.turn} / 6 次发言 · ${metadata.provider==='demo'?'离线预设发言':metadata.provider==='zhihu'?'知乎直答已返回':'实时模型已返回'}`;
+      d.turn++;this.updateSteps();if(d.turn===2)this.api.event?.('two-turns');this.api.changed?.();$('#agent-status').textContent=`${d.turn} / 6 次发言 · ${metadata.provider==='demo'?'离线预设发言':metadata.provider==='zhihu'?'知乎直答已返回':`${metadata.model||'实时模型'} 已返回`}`;
+      if(metadata.provider!=='demo'){
+        $('#discussion-source').textContent=`${metadata.model||'实时模型'} 生成 · 非原答主发言`;
+        if($('#discussion-provider'))$('#discussion-provider').textContent=$('#discussion-source').textContent+' · 设置';
+      }
       if(d.auto)this.agentTimer=setTimeout(()=>this.nextTurn(),d.turn>=6?2500:4500);
     }catch(error){
       if(this.discussion===d&&d.request===request&&!d.finished&&(!request.signal.aborted||timedOut)){d.auto=false;$('#auto-turn').textContent='自动对谈';$('#agent-status').textContent=timedOut?'请求已超时，未新增发言。可手动重试。':error.message;}
