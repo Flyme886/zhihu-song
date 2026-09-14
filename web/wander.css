@@ -108,21 +108,29 @@ body[data-renderer="fallback"] .wander-mobile,body[data-renderer="fallback"] #wa
 #world-quality{border:1px solid #bdc9b6;background:#fcf8ee;color:#315c86;border-radius:6px;font:12px system-ui;padding:5px 9px}
 
 /* Clear, quiet controls remain legible over both foliage and pale sky. */
-body[data-view="planet"] .cinema-vignette{background:linear-gradient(180deg,#f5f4e9a6,transparent 22%,transparent 76%,#f5eed8ad)}
-.wander-location{font-size:12px;letter-spacing:.7px;color:#405952}
+body[data-view="planet"] .cinema-vignette{background:linear-gradient(180deg,#f5f4e96b,transparent 20%,transparent 83%,#f5eed854)}
+.wander-location{font-size:12px;letter-spacing:.7px;color:#405952;padding:8px 12px;margin:-8px -12px;border:1px solid #fffdf15c;border-radius:30px;background:#f7f6e83d;backdrop-filter:blur(10px)}
 .wander-location small{font-size:11px;color:#5e7067}
-.wander-switch{border-color:#fffaf0d9;box-shadow:0 4px 22px #334c4210}
+.wander-switch{border-color:#fffaf0b8;background:#f7f5e5ad;box-shadow:inset 0 1px 0 #ffffff80,0 4px 22px #334c4210}
 .wander-switch button{min-height:36px;font-size:12px;padding-inline:16px}
-.wander-map-button{font-size:13px;min-height:44px;box-shadow:0 4px 22px #334c4210}
-.wander-pin>span{min-width:31px;height:31px;font-size:11px;border:1px solid #fff9e6;box-shadow:0 3px 16px #384d4230}
+.wander-map-button{font-size:12px;min-height:44px;box-shadow:inset 0 1px 0 #ffffff80,0 4px 22px #334c4210}
+.wander-pin>span{min-width:28px;height:28px;font-size:10px;border:1px solid #fff9e6;box-shadow:0 3px 16px #384d4224}
 .wander-pin>em{font-size:12px;padding:7px 11px;border-radius:8px}
-.wander-key-guide{font-size:12px;gap:17px;color:#3c5149;background:#faf5e5b8;border:1px solid #fffaeac9;border-radius:12px;padding:10px 14px;bottom:20px;backdrop-filter:blur(12px)}
+.wander-key-guide{font-size:11px;gap:17px;color:#3c5149;background:#faf5e5a8;border:1px solid #fffaeab0;border-radius:30px;padding:9px 15px;bottom:20px;backdrop-filter:blur(14px);box-shadow:inset 0 1px 0 #fffdf566,0 3px 20px #384d420a}
 .wander-key-guide kbd{font-size:10px;min-width:21px;height:23px;background:#fffbef}
 .wander-key-guide button{font-size:12px;margin-left:3px}
-#wander-near{border-radius:18px;box-shadow:0 12px 40px #334d4226;padding:17px 22px}
+#wander-near{border-radius:18px;box-shadow:inset 0 1px 0 #ffffffaa,0 8px 30px #334d421a;padding:17px 22px;background:#fbf7ece0}
 #wander-near small{font-size:11px}#wander-near strong{font-size:14px}
 body:not([data-view="world"]) .sound-controls button{font-size:12px;color:#304c50}
+body[data-view="planet"] #cosmic-my-planet{position:relative}
+body[data-view="planet"] #cosmic-my-planet:after{content:"";position:absolute;bottom:3px;left:50%;width:4px;height:4px;border-radius:50%;background:#8b9864}
+body[data-view="planet"] .cosmic-navigation{padding:0 15px;margin-right:-15px;border-radius:30px;background:#faf6e3ad;border:1px solid #fffbed8c;backdrop-filter:blur(12px)}
+.wander-hud button{transition:background .18s,box-shadow .18s}
+.wander-map-button:hover{background:#fffbed;box-shadow:0 5px 24px #334c4220}
+.wander-switch button:hover:not([aria-pressed="true"]){background:#fffbeb73}
+@media(prefers-reduced-motion:reduce){.wander-hud button{transition:none}}
 @media(max-width:700px){
+ body[data-view="planet"] .cosmic-navigation{padding:0 10px;margin-right:-10px}
  .wander-location{font-size:11px}.wander-location small{font-size:10px}
  .wander-switch button{min-height:33px;font-size:11px;padding-inline:12px}
  .wander-pin>em{font-size:11px;max-width:150px}

@@ -3,7 +3,8 @@ export const WORLD_RADIUS=46;
 export const SPAWN={x:0,z:17,yaw:0,pitch:.28};
 export const AREAS={cases:{x:-22,z:-7,label:'花田小径'},records:{x:22,z:-12,label:'树下长椅'},opinions:{x:0,z:-34,label:'山脚石廊'}};
 export const TREE_POSITIONS=[[26,-18],[16,-19],[-25,-9],[33,-29],[-37,-24],[36,8],[-34,13],[-14,-45],[17,-43],[40,-3],[-43,-5]];
-export const OBSTACLES=[{x:21,z:-13,r:1.1},...TREE_POSITIONS.map(([x,z])=>({x,z,r:.55})),...Array.from({length:8},(_,i)=>({x:-8+i*2.3,z:-37,r:.44}))];
+export const WAYMARKERS=[{x:4.1,z:12,title:'花田小径',subtitle:'MEADOW WALK',rotation:-.12},{x:18,z:-15,title:'树下长椅',subtitle:'A PLACE TO PAUSE',rotation:-.35},{x:4,z:-32,title:'山脚石廊',subtitle:'THE QUIET ARCHIVE',rotation:.16}];
+export const OBSTACLES=[{x:21,z:-13,r:1.1},...TREE_POSITIONS.map(([x,z])=>({x,z,r:.55})),...WAYMARKERS.map(({x,z})=>({x,z,r:.24})),...Array.from({length:8},(_,i)=>({x:-8+i*2.3,z:-37,r:.44}))];
 export function terrainHeight(x,z){return -.5+Math.sin(x*.052)*.95+Math.cos(z*.054)*.6+Math.sin(x*.13+z*.071)*.18;}
 export function pathDistance(x,z){return Math.min(Math.abs(Math.hypot(x,z+8)-29),Math.abs(x-2*Math.sin(z*.08)),Math.abs(z+9+.13*x));}
 export function hashString(value){let h=2166136261;for(const c of String(value)){h^=c.charCodeAt(0);h=Math.imul(h,16777619);}return h>>>0;}
